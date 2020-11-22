@@ -21,49 +21,49 @@ import 'quill/dist/quill.bubble.css'
 import { quillEditor } from 'vue-quill-editor'
 
 export default {
-  name: 'QuillEditor',
-  components: {
-    quillEditor
-  },
-  props: {
-    prefixCls: {
-      type: String,
-      default: 'ant-editor-quill'
+    name: 'QuillEditor',
+    components: {
+        quillEditor
     },
-    // 表单校验用字段
-    // eslint-disable-next-line
+    props: {
+        prefixCls: {
+            type: String,
+            default: 'ant-editor-quill'
+        },
+        // 表单校验用字段
+        // eslint-disable-next-line
     value: {
-      type: String
-    }
-  },
-  data () {
-    return {
-      content: null,
-      editorOption: {
-        // some quill options
-      }
-    }
-  },
-  methods: {
-    onEditorBlur (quill) {
-      console.log('editor blur!', quill)
+            type: String
+        }
     },
-    onEditorFocus (quill) {
-      console.log('editor focus!', quill)
+    data () {
+        return {
+            content: null,
+            editorOption: {
+                // some quill options
+            }
+        }
     },
-    onEditorReady (quill) {
-      console.log('editor ready!', quill)
+    methods: {
+        onEditorBlur (quill) {
+            console.log('editor blur!', quill)
+        },
+        onEditorFocus (quill) {
+            console.log('editor focus!', quill)
+        },
+        onEditorReady (quill) {
+            console.log('editor ready!', quill)
+        },
+        onEditorChange ({ quill, html, text }) {
+            console.log('editor change!', quill, html, text)
+            this.$emit('change', html)
+        }
     },
-    onEditorChange ({ quill, html, text }) {
-      console.log('editor change!', quill, html, text)
-      this.$emit('change', html)
+    watch: {
+        value (val) {
+            this.content = val
+        }
     }
-  },
-  watch: {
-    value (val) {
-      this.content = val
-    }
-  }
 }
 </script>
 

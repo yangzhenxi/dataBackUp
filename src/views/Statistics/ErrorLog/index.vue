@@ -53,88 +53,88 @@
 </template>
 
 <script>
- import Papa from 'papaparse'
+import Papa from 'papaparse'
 import { MTable, Ellipsis } from '@/components'
 import { Getlog } from '@/api/Statistics'
 export default {
-  name: 'TableList',
-  components: {
-    MTable,
-    Ellipsis
-  },
-  data () {
-    return {
-      itemList: [],
-      visible: false,
-      // 查询参数
-      queryParam: {},
-      // 表头
-      columns: [
-        {
-          title: '表名',
-          dataIndex: 'TableName',
-          ellipsis: true,
-          customRender: (val, row, index) => {
-            const obj = {
-              children: val,
-              attrs: {}
-            }
-            return obj
-          }
-        },
-        {
-          title: '错误信息',
-          dataIndex: 'Error',
-          ellipsis: true,
-          sorter: true,
-          scopedSlots: { customRender: 'Error' }
-        }
-      ],
-      result: [],
-      // 加载数据方法 必须为 Promise 对象
-      loadData: async parameter => {
-        this.result = await Getlog()
-            return {
-                data: this.result,
-                queryParam: this.queryParam
-        }
-      }
-    }
-  },
-
-  methods: {
-    onChange (date, dateString) {
-      console.log(date, dateString)
+    name: 'TableList',
+    components: {
+        MTable,
+        Ellipsis
     },
-     hide () {
-      this.visible = false
-    },
-    ExportExcel () {
-        this.result.forEach((u, index) => {
-            if (index !== 0) {
-                const obj = {
-                    '表名': u.TableName,
-                    '错误信息': u.Error
+    data () {
+        return {
+            itemList: [],
+            visible: false,
+            // 查询参数
+            queryParam: {},
+            // 表头
+            columns: [
+                {
+                    title: '表名',
+                    dataIndex: 'TableName',
+                    ellipsis: true,
+                    customRender: (val, row, index) => {
+                        const obj = {
+                            children: val,
+                            attrs: {}
+                        }
+                        return obj
+                    }
+                },
+                {
+                    title: '错误信息',
+                    dataIndex: 'Error',
+                    ellipsis: true,
+                    sorter: true,
+                    scopedSlots: { customRender: 'Error' }
                 }
-                this.itemList.push(obj)
+            ],
+            result: [],
+            // 加载数据方法 必须为 Promise 对象
+            loadData: async parameter => {
+                this.result = await Getlog()
+                return {
+                    data: this.result,
+                    queryParam: this.queryParam
+                }
             }
-        })
-        var csv = Papa.unparse(this.itemList)
-        // 定义文件内容，类型必须为Blob 否则createObjectURL会报错
-        const content = new Blob([`\ufeff${csv}`])
-        // 生成url对象
-        const urlObject = window.URL || window.webkitURL || window
-        const url = urlObject.createObjectURL(content)
-        // 生成<a></a>DOM元素
-        const el = document.createElement('a')
-        // 链接赋值
-        el.href = url
-        el.download = '导出推送日志.csv'
-        // 必须点击否则不会下载
-        el.click()
-        // 移除链接释放资源
-        urlObject.revokeObjectURL(url)
+        }
+    },
+
+    methods: {
+        onChange (date, dateString) {
+            console.log(date, dateString)
+        },
+        hide () {
+            this.visible = false
+        },
+        ExportExcel () {
+            this.result.forEach((u, index) => {
+                if (index !== 0) {
+                    const obj = {
+                        '表名': u.TableName,
+                        '错误信息': u.Error
+                    }
+                    this.itemList.push(obj)
+                }
+            })
+            var csv = Papa.unparse(this.itemList)
+            // 定义文件内容，类型必须为Blob 否则createObjectURL会报错
+            const content = new Blob([`\ufeff${csv}`])
+            // 生成url对象
+            const urlObject = window.URL || window.webkitURL || window
+            const url = urlObject.createObjectURL(content)
+            // 生成<a></a>DOM元素
+            const el = document.createElement('a')
+            // 链接赋值
+            el.href = url
+            el.download = '导出推送日志.csv'
+            // 必须点击否则不会下载
+            el.click()
+            // 移除链接释放资源
+            urlObject.revokeObjectURL(url)
+        }
     }
-  }
 }
 </script>

@@ -13,18 +13,18 @@
 
 <script>
 export default {
-  name: 'RankList',
-  // ['title', 'list']
-  props: {
-    title: {
-      type: String,
-      default: ''
-    },
-    list: {
-      type: Array,
-      default: null
+    name: 'RankList',
+    // ['title', 'list']
+    props: {
+        title: {
+            type: String,
+            default: ''
+        },
+        list: {
+            type: Array,
+            default: null
+        }
     }
-  }
 }
 </script>
 

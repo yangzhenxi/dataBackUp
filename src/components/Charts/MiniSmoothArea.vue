@@ -12,26 +12,26 @@
 
 <script>
 export default {
-  name: 'MiniSmoothArea',
-  props: {
-    prefixCls: {
-      type: String,
-      default: 'ant-pro-smooth-area'
+    name: 'MiniSmoothArea',
+    props: {
+        prefixCls: {
+            type: String,
+            default: 'ant-pro-smooth-area'
+        },
+        scale: {
+            type: [Object, Array],
+            required: true
+        },
+        dataSource: {
+            type: Array,
+            required: true
+        }
     },
-    scale: {
-      type: [Object, Array],
-      required: true
-    },
-    dataSource: {
-      type: Array,
-      required: true
+    data () {
+        return {
+            height: 100
+        }
     }
-  },
-  data () {
-    return {
-      height: 100
-    }
-  }
 }
 </script>
 

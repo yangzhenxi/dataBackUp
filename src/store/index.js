@@ -14,19 +14,19 @@ import getters from './getters'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  modules: {
-    app,
-    user,
-    permission
-  },
-  state: {
+    modules: {
+        app,
+        user,
+        permission
+    },
+    state: {
 
-  },
-  mutations: {
+    },
+    mutations: {
 
-  },
-  actions: {
+    },
+    actions: {
 
-  },
-  getters
+    },
+    getters
 })

@@ -11,54 +11,54 @@ import { cutStrByFullLength, getStrFullLength } from '@/components/_util/util'
   */
 
 export default {
-  name: 'Ellipsis',
-  components: {
-    Tooltip
-  },
-  props: {
-    prefixCls: {
-      type: String,
-      default: 'ant-pro-ellipsis'
+    name: 'Ellipsis',
+    components: {
+        Tooltip
     },
-    tooltip: {
-      type: Boolean
+    props: {
+        prefixCls: {
+            type: String,
+            default: 'ant-pro-ellipsis'
+        },
+        tooltip: {
+            type: Boolean
+        },
+        length: {
+            type: Number,
+            required: true
+        },
+        lines: {
+            type: Number,
+            default: 1
+        },
+        fullWidthRecognition: {
+            type: Boolean,
+            default: false
+        }
     },
-    length: {
-      type: Number,
-      required: true
+    methods: {
+        getStrDom (str, fullLength) {
+            return (
+                <span>{ cutStrByFullLength(str, this.length) + (fullLength > this.length ? '...' : '') }</span>
+            )
+        },
+        getTooltip (fullStr, fullLength) {
+            return (
+                <Tooltip>
+                    <template slot="title">{ fullStr }</template>
+                    { this.getStrDom(fullStr, fullLength) }
+                </Tooltip>
+            )
+        }
     },
-    lines: {
-      type: Number,
-      default: 1
-    },
-    fullWidthRecognition: {
-      type: Boolean,
-      default: false
+    render () {
+        const { tooltip, length } = this.$props
+        const str = this.$slots.default.map(vNode => vNode.text).join('')
+        const fullLength = getStrFullLength(str)
+        const strDom = tooltip && fullLength > length ? this.getTooltip(str, fullLength) : this.getStrDom(str, fullLength)
+        return (
+            strDom
+        )
     }
-  },
-  methods: {
-    getStrDom (str, fullLength) {
-      return (
-        <span>{ cutStrByFullLength(str, this.length) + (fullLength > this.length ? '...' : '') }</span>
-      )
-    },
-    getTooltip (fullStr, fullLength) {
-      return (
-        <Tooltip>
-          <template slot="title">{ fullStr }</template>
-          { this.getStrDom(fullStr, fullLength) }
-        </Tooltip>
-      )
-    }
-  },
-  render () {
-    const { tooltip, length } = this.$props
-    const str = this.$slots.default.map(vNode => vNode.text).join('')
-    const fullLength = getStrFullLength(str)
-    const strDom = tooltip && fullLength > length ? this.getTooltip(str, fullLength) : this.getStrDom(str, fullLength)
-    return (
-      strDom
-    )
-  }
 }
 </script>

@@ -16,47 +16,47 @@
 import icons from './icons'
 
 export default {
-  name: 'IconSelect',
-  props: {
-    prefixCls: {
-      type: String,
-      default: 'ant-pro-icon-selector'
-    },
-    // eslint-disable-next-line
+    name: 'IconSelect',
+    props: {
+        prefixCls: {
+            type: String,
+            default: 'ant-pro-icon-selector'
+        },
+        // eslint-disable-next-line
     value: {
-      type: String
-    }
-  },
-  data () {
-    return {
-      selectedIcon: this.value || '',
-      currentTab: 'directional',
-      icons
-    }
-  },
-  watch: {
-    value (val) {
-      this.selectedIcon = val
-      this.autoSwitchTab()
-    }
-  },
-  created () {
-    if (this.value) {
-      this.autoSwitchTab()
-    }
-  },
-  methods: {
-    handleSelectedIcon (icon) {
-      this.selectedIcon = icon
-      this.$emit('change', icon)
+            type: String
+        }
     },
-    handleTabChange (activeKey) {
-      this.currentTab = activeKey
+    data () {
+        return {
+            selectedIcon: this.value || '',
+            currentTab: 'directional',
+            icons
+        }
     },
-    autoSwitchTab () {
-      icons.some(item => item.icons.some(icon => icon === this.value) && (this.currentTab = item.key))
+    watch: {
+        value (val) {
+            this.selectedIcon = val
+            this.autoSwitchTab()
+        }
+    },
+    created () {
+        if (this.value) {
+            this.autoSwitchTab()
+        }
+    },
+    methods: {
+        handleSelectedIcon (icon) {
+            this.selectedIcon = icon
+            this.$emit('change', icon)
+        },
+        handleTabChange (activeKey) {
+            this.currentTab = activeKey
+        },
+        autoSwitchTab () {
+            icons.some(item => item.icons.some(icon => icon === this.value) && (this.currentTab = item.key))
+        }
     }
-  }
 }
 </script>
 

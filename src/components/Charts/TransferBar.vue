@@ -16,49 +16,49 @@
 
 <script>
 const tooltip = [
-  'x*y',
-  (x, y) => ({
-    name: x,
-    value: y
-  })
+    'x*y',
+    (x, y) => ({
+        name: x,
+        value: y
+    })
 ]
 const scale = [{
-  dataKey: 'x',
-  title: '日期(天)',
-  alias: '日期(天)',
-  min: 2
+    dataKey: 'x',
+    title: '日期(天)',
+    alias: '日期(天)',
+    min: 2
 }, {
-  dataKey: 'y',
-  title: '流量(Gb)',
-  alias: '流量(Gb)',
-  min: 1
+    dataKey: 'y',
+    title: '流量(Gb)',
+    alias: '流量(Gb)',
+    min: 1
 }]
 
 export default {
-  name: 'Bar',
-  props: {
-    title: {
-      type: String,
-      default: ''
+    name: 'Bar',
+    props: {
+        title: {
+            type: String,
+            default: ''
+        }
+    },
+    data () {
+        return {
+            data: [],
+            scale,
+            tooltip
+        }
+    },
+    created () {
+        this.getMonthBar()
+    },
+    methods: {
+        getMonthBar () {
+            this.$http.get('/analysis/month-bar')
+                .then(res => {
+                    this.data = res.result
+                })
+        }
     }
-  },
-  data () {
-    return {
-      data: [],
-      scale,
-      tooltip
-    }
-  },
-  created () {
-    this.getMonthBar()
-  },
-  methods: {
-    getMonthBar () {
-      this.$http.get('/analysis/month-bar')
-        .then(res => {
-          this.data = res.result
-        })
-    }
-  }
 }
 </script>

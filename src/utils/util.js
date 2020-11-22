@@ -1,6 +1,14 @@
 import moment from 'moment'
 import 'moment/locale/zh-cn'
+import dict from './dict'
 moment.locale('zh-cn')
+
+export function isIE () {
+    const bw = window.navigator.userAgent
+    const compare = s => bw.indexOf(s) >= 0
+    const ie11 = (() => 'ActiveXObject' in window)()
+    return compare('MSIE') || ie11
+}
 
 /**
  * unix 时间戳转换
@@ -8,7 +16,7 @@ moment.locale('zh-cn')
  * @param { String } pattern 格式
  */
 export function unixToDate (unix, pattern = 'YYYY-MM-DD HH:mm:ss') {
-  return moment.unix(unix).format(pattern)
+    return moment.unix(unix).format(pattern)
 }
 /**
  * 字典转换
@@ -16,14 +24,14 @@ export function unixToDate (unix, pattern = 'YYYY-MM-DD HH:mm:ss') {
  * @param { String } filter 过滤器
  */
 export function toDict (val, filter) {
-  if (!val && val !== false && val !== 0) {
-    return '-'
-  }
-  if (!filter) {
-    return val
-  } else {
-    return val
-  }
+    if (!val && val !== false && val !== 0) {
+        return '-'
+    }
+    if (!filter) {
+        return val
+    } else {
+        return val
+    }
 }
 
 /**
@@ -33,7 +41,23 @@ export function toDict (val, filter) {
  * @param { String } args 过滤器参数
  */
 export function convert (val, filter, args) {
-
+    if (!val && val !== false && val !== 0) {
+        return '-'
+    }
+    if (!filter) {
+        return val
+    }
+    if (dict[filter]) {
+        return deepGet(dict[filter].find(e => e.key === val), 'val')
+    } else {
+        switch (filter) {
+            case 'unix':
+                if (val === '0') {
+                    return '暂无数据'
+                }
+                return unixToDate(val, args)
+        }
+    }
 }
 
 /**
@@ -43,14 +67,14 @@ export function convert (val, filter, args) {
  * @param { String } defaultValue 默认值
  */
 export function deepGet (object, path, defaultValue) {
-  const s = (!Array.isArray(path)
-    ? path
-        .replace(/\[/g, '.')
-        .replace(/\]/g, '')
-        .split('.')
-    : path
-  ).reduce((o, k) => (o || {})[k], object)
-  return s !== false && isEmpty(s) ? defaultValue : s
+    const s = (!Array.isArray(path)
+        ? path
+            .replace(/\[/g, '.')
+            .replace(/\]/g, '')
+            .split('.')
+        : path
+    ).reduce((o, k) => (o || {})[k], object)
+    return s !== false && isEmpty(s) ? defaultValue : s
 }
 
 /**
@@ -58,7 +82,7 @@ export function deepGet (object, path, defaultValue) {
  * @param { Array } Array 数组
  */
 export function uniq (array) {
-  return [...new Set(array)]
+    return [...new Set(array)]
 }
 
 /**
@@ -66,32 +90,32 @@ export function uniq (array) {
  * @param { Object } o 对象
  */
 export function isEmpty (o) {
-  const type = Object.prototype.toString.call(o)
-  switch (type) {
-    case '[object Boolean]':
-      return !o
-    case '[object Number]':
-      return false
-    case '[object String]':
-      return o === ''
-    case '[object Undefined]':
-      return true
-    case '[object Null]':
-      return true
-    case '[object Array]':
-      return o.length === 0
-    case '[object Object]':
-      return Object.keys(o).length === 0
-    case '[object Function]':
-      return false
-    case '[object Symbol]':
-      return false
-  }
+    const type = Object.prototype.toString.call(o)
+    switch (type) {
+        case '[object Boolean]':
+            return !o
+        case '[object Number]':
+            return false
+        case '[object String]':
+            return o === ''
+        case '[object Undefined]':
+            return true
+        case '[object Null]':
+            return true
+        case '[object Array]':
+            return o.length === 0
+        case '[object Object]':
+            return Object.keys(o).length === 0
+        case '[object Function]':
+            return false
+        case '[object Symbol]':
+            return false
+    }
 }
 export function welcome () {
-  const arr = ['休息一会儿吧', '准备吃什么呢?', '要不要打一把 DOTA', '我猜你可能累了']
-  const index = Math.floor(Math.random() * arr.length)
-  return arr[index]
+    const arr = ['休息一会儿吧', '准备吃什么呢?', '要不要打一把 DOTA', '我猜你可能累了']
+    const index = Math.floor(Math.random() * arr.length)
+    return arr[index]
 }
 
 export function getRowSpanCount (data, index) {
@@ -100,20 +124,60 @@ export function getRowSpanCount (data, index) {
     const res = [[preValue]]
     let i = 0
     for (let j = 1; j < data.length; j++) {
-      if (data[j] === preValue) {
-        res[i].push(data[j])
-      } else {
-        i += 1
-        res[i] = []
-        res[i].push(data[j])
-        preValue = data[j]
-      }
+        if (data[j] === preValue) {
+            res[i].push(data[j])
+        } else {
+            i += 1
+            res[i] = []
+            res[i].push(data[j])
+            preValue = data[j]
+        }
     }
     const result = []
     res.map((u) => {
-      u.map((_, p) => {
-        result.push(p === 0 ? u.length : 0)
-      })
+        u.map((_, p) => {
+            result.push(p === 0 ? u.length : 0)
+        })
     })
     return result[index]
-  }
+}
+export function timeFix () {
+    const time = new Date()
+    const hour = time.getHours()
+    return hour < 9 ? '早上好' : hour <= 11 ? '上午好' : hour <= 13 ? '中午好' : hour < 20 ? '下午好' : '晚上好'
+}
+
+/**
+ * 防抖
+ * @param { Function } callback
+ * @param { Number } delay
+ */
+export const debounce = (func, wait = 500) => {
+    let timer = null
+    return function () {
+        const args = arguments
+        const context = this
+        timer && clearTimeout(timer)
+        timer = setTimeout(() => {
+            func.apply(context, args)
+        }, wait)
+    }
+}
+
+/**
+ * 限流
+ * @param { Function } callback
+ * @param { Number } delay
+ */
+export function throttle (func, wait = 500) {
+    let lastTime = new Date().getTime()
+    return function () {
+        const args = arguments
+        const context = this
+        const now = new Date().getTime()
+        if (now - lastTime > wait) {
+            func.apply(context, args)
+            lastTime = now
+        }
+    }
+}

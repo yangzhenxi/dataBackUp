@@ -39,7 +39,7 @@ export const asyncRouterMap = [
                         children: [
                             {
                                 path: '/Statistics/HomeMain/Home',
-                                name: 'District',
+                                name: 'Pushlog',
                                 hidden: true,
                                 component: () => import('@/views/Statistics/HomeMain/Home'),
                                 meta: { title: '推送日志', keepAlive: false, permission: ['dashboard'] }
@@ -59,6 +59,58 @@ export const asyncRouterMap = [
                                 meta: { title: '错误日志', keepAlive: true, permission: ['dashboard'] }
                             }
                         ]
+                    },
+                    {
+                        path: '/Extract/Extract',
+                        name: 'pull',
+                        hideChildrenInMenu: true,
+                        redirect: '/pull/Extract/Home',
+                        component: () => import('@/views/Statistics/Extract/main'),
+                        meta: { title: '抽取', keepAlive: false, permission: ['dashboard'] },
+                        children: [
+                            {
+                                path: '/pull/Extract/Home',
+                                name: 'Pulllog',
+                                hidden: true,
+                                component: () => import('@/views/Statistics/Extract/Home'),
+                                meta: { title: '抽取日志', keepAlive: false, permission: ['dashboard'] }
+                            },
+                            {
+                                path: '/pull/Extract/District',
+                                name: 'Extract',
+                                hidden: true,
+                                component: () => import('@/views/Statistics/Extract/District'),
+                                meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
+                            },
+                            {
+                                path: '/pull/Extract/Errorlog',
+                                name: 'ErrorLog',
+                                hidden: true,
+                                component: () => import('@/views/Statistics/Extract/Errorlog'),
+                                meta: { title: '错误日志', keepAlive: true, permission: ['dashboard'] }
+                            }
+                        ]
+                    }
+                ]
+            },
+            // 系统
+            {
+                path: '/system',
+                name: 'system',
+                component: RouteView,
+                meta: { title: '系统管理', keepAlive: true, icon: bxAnaalyse, permission: ['system'] },
+                children: [
+                // {
+                //     path: '/system/role',
+                //     name: 'role',
+                //     component: () => import('@/views/system/role'),
+                //     meta: { title: '角色管理', keepAlive: true, icon: bxAnaalyse, permission: ['dashboard'] }
+                // },
+                    {
+                        path: '/system/user',
+                        name: 'user',
+                        component: () => import('@/views/system/user'),
+                        meta: { title: '用户管理', keepAlive: true, icon: bxAnaalyse, permission: ['system'] }
                     }
                 ]
             }
@@ -104,8 +156,8 @@ export const constantRouterMap = [
     }
 
     // {
-        // path: '/404',
-        // component: () => import(/* webpackChunkName: "fail" */ '@/views/exception/404')
+    // path: '/404',
+    // component: () => import(/* webpackChunkName: "fail" */ '@/views/exception/404')
     // }
 
 ]

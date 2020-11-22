@@ -8,20 +8,6 @@
               <a-input v-model="queryParam.TableName" placeholder="请输入要查询的表名" />
             </a-form-item>
           </a-col>
-          <!-- <a-col :md="6" :sm="24">
-              <a-form-item label="筛选条件">
-                <a-select v-model="queryParam.status" placeholder="请选择" default-value="0">
-                  <a-select-option value="0">全部</a-select-option>
-                  <a-select-option value="1">关闭</a-select-option>
-                  <a-select-option value="2">运行中</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item label="更新日期">
-                <a-range-picker @change="onChange" format="YYYY-MM-DD HH:mm:ss" />
-              </a-form-item>
-            </a-col> -->
           <a-col :md="6" :sm="24">
             <a-button type="primary" @click="$refs.table.refresh(true)">查询</a-button>
             <a-button style="margin-left: 8px" @click="() => (queryParam = {})">重置</a-button>
@@ -38,107 +24,130 @@
       ref="table"
       size="default"
       bordered
-      rowKey="description"
       :columns="columns"
       :data="loadData">
       <template slot="Error" slot-scope="text">
-        <a-popover >
-          <a slot="content" >{{ text }}</a>
-          <span>因为***原因，推送失败</span>
-        </a-popover>
+        <ellipsis :length="35" tooltip>{{ text }}</ellipsis>
+      </template>
+      <template slot="TableName" slot-scope="text">
+        {{ text | convert('L_TABLENAME') }}
       </template>
     </m-table>
   </a-card>
 </template>
 
 <script>
- import Papa from 'papaparse'
+import Papa from 'papaparse'
+import { convert, deepGet } from '@/utils/util'
 import { MTable, Ellipsis } from '@/components'
-import { Getlog } from '@/api/Statistics'
+import { Getlog, GetlogErr } from '@/api/Statistics'
 export default {
-  name: 'TableList',
-  components: {
-    MTable,
-    Ellipsis
-  },
-  data () {
-    return {
-      itemList: [],
-      visible: false,
-      // 查询参数
-      queryParam: {},
-      // 表头
-      columns: [
-        {
-          title: '机构',
-          dataIndex: 'Organization',
-          ellipsis: true
-        },
-        {
-          title: '表名',
-          dataIndex: 'TableName',
-          ellipsis: true,
-          customRender: (val, row, index) => {
-            const obj = {
-              children: val,
-              attrs: {}
+    name: 'TableList',
+    components: {
+        MTable,
+        Ellipsis
+    },
+    data () {
+        return {
+			itemList: [],
+            visible: false,
+			// 查询参数
+			time: [],
+            queryParam: {},
+            // 表头
+            columns: [
+                {
+                    title: '机构',
+                    dataIndex: 'OrgName',
+                    ellipsis: true
+                },
+                {
+                    title: '表名',
+                    dataIndex: 'TableName',
+                    ellipsis: true,
+                    scopedSlots: { customRender: 'TableName' }
+                },
+                {
+                    title: '表内数据ID',
+                    dataIndex: 'TableId',
+                    ellipsis: true
+                },
+                {
+                    title: '错误信息',
+                    dataIndex: 'Error',
+                    ellipsis: true,
+                    sorter: true,
+                    scopedSlots: { customRender: 'Error' }
+                },
+                {
+                    title: '上传时间',
+                    dataIndex: 'UploadTime',
+                    ellipsis: true,
+                    sorter: true,
+                    scopedSlots: { customRender: 'time' }
+                }
+            ],
+            result: [],
+            // 加载数据方法 必须为 Promise 对象
+            loadData: async parameter => {
+				this.result = []
+				console.log(this.$route.query)
+                if (this.$route.query.code) {
+                    const obj = {
+                        'code': this.$route.query.code,
+                        'table_name': this.$route.query.TableName,
+                        'start_time': this.$route.query.start_time + ' ' + '00:00:00',
+                        'end_time': this.$route.query.end_time + ' ' + '00:00:00'
+					}
+					this.time = {
+						'start_time': this.$route.query.start_time,
+                        'end_time': this.$route.query.end_time
+					}
+					this.$route.query.is_town === 'true' ? obj.is_town = true : obj.is_town = false
+                    this.result = deepGet(await GetlogErr(obj), 'data', [])
+                } else {
+                    this.result = deepGet(await Getlog(), 'data', [])
+                }
+                return {
+                    data: this.result,
+                    queryParam: this.queryParam
+                }
             }
-            return obj
-          }
-        },
-        {
-          title: '错误信息',
-          dataIndex: 'Error',
-          ellipsis: true,
-          sorter: true,
-          scopedSlots: { customRender: 'Error' }
         }
-      ],
-      result: [],
-      // 加载数据方法 必须为 Promise 对象
-      loadData: async parameter => {
-        this.result = await Getlog()
-            return {
-                data: this.result,
-                queryParam: this.queryParam
-        }
-      }
-    }
-  },
+    },
 
-  methods: {
-    onChange (date, dateString) {
-      console.log(date, dateString)
-    },
-    Close () {
-      this.$router.push('/Statistics/HomeMain/Home')
-    },
-    ExportExcel () {
-        this.result.forEach((u, index) => {
-            if (index !== 0) {
+    methods: {
+        Close () {
+            this.$router.push({ path: '/Statistics/HomeMain/Home', query: this.time })
+        },
+        ExportExcel () {
+            this.result.forEach((u, index) => {
                 const obj = {
-                    '表名': u.TableName,
-                    '错误信息': u.Error
+                    '机构': u.OrgName,
+                    '表名': this.convert(u.TableName, 'L_TABLENAME'),
+                    '表内数据ID': u.TableId,
+                    '错误信息': u.Error,
+                    '上传时间': convert(u.UploadTime, 'unix')
                 }
                 this.itemList.push(obj)
-            }
-        })
-        var csv = Papa.unparse(this.itemList)
-        // 定义文件内容，类型必须为Blob 否则createObjectURL会报错
-        const content = new Blob([`\ufeff${csv}`])
-        // 生成url对象
-        const urlObject = window.URL || window.webkitURL || window
-        const url = urlObject.createObjectURL(content)
-        // 生成<a></a>DOM元素
-        const el = document.createElement('a')
-        // 链接赋值
-        el.href = url
-        el.download = '导出推送日志.csv'
-        // 必须点击否则不会下载
-        el.click()
-        // 移除链接释放资源
-        urlObject.revokeObjectURL(url)
+            })
+            var csv = Papa.unparse(this.itemList)
+            // 定义文件内容，类型必须为Blob 否则createObjectURL会报错
+            const content = new Blob([`\ufeff${csv}`])
+            // 生成url对象
+            const urlObject = window.URL || window.webkitURL || window
+            const url = urlObject.createObjectURL(content)
+            // 生成<a></a>DOM元素
+            const el = document.createElement('a')
+            // 链接赋值
+            el.href = url
+            el.download = '导出错误日志.csv'
+            // 必须点击否则不会下载
+            el.click()
+            // 移除链接释放资源
+            urlObject.revokeObjectURL(url)
+        },
+        convert
     }
-  }
 }
 </script>

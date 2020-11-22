@@ -15,48 +15,48 @@
 
 <script>
 export default {
-  name: 'Bar',
-  props: {
-    title: {
-      type: String,
-      default: ''
+    name: 'Bar',
+    props: {
+        title: {
+            type: String,
+            default: ''
+        },
+        data: {
+            type: Array,
+            default: () => {
+                return []
+            }
+        },
+        scale: {
+            type: Array,
+            default: () => {
+                return [{
+                    dataKey: 'x',
+                    min: 2
+                }, {
+                    dataKey: 'y',
+                    title: '时间',
+                    min: 1,
+                    max: 22
+                }]
+            }
+        },
+        tooltip: {
+            type: Array,
+            default: () => {
+                return [
+                    'x*y',
+                    (x, y) => ({
+                        name: x,
+                        value: y
+                    })
+                ]
+            }
+        }
     },
-    data: {
-      type: Array,
-      default: () => {
-        return []
-      }
-    },
-    scale: {
-      type: Array,
-      default: () => {
-        return [{
-          dataKey: 'x',
-          min: 2
-        }, {
-          dataKey: 'y',
-          title: '时间',
-          min: 1,
-          max: 22
-        }]
-      }
-    },
-    tooltip: {
-      type: Array,
-      default: () => {
-        return [
-          'x*y',
-          (x, y) => ({
-            name: x,
-            value: y
-          })
-        ]
-      }
+    data () {
+        return {
+        }
     }
-  },
-  data () {
-    return {
-    }
-  }
 }
 </script>

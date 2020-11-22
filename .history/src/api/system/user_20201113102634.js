@@ -1,0 +1,9 @@
+import request from '@/utils/request'
+
+/**
+ *  用户列表
+ * @param {data}
+ */
+export function Getres () {
+    return request.post('/v1/upload/user/list')
+}
