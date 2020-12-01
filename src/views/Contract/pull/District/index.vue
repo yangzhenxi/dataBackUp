@@ -4,15 +4,17 @@
       <a-form layout="inline">
         <a-row :gutter="48">
           <a-col
-            :md="8"
+            :md="6"
             :sm="24">
             <a-form-item label="机构">
-              <a-input v-model="params.name"></a-input>
+              <a-input v-model="params.name" placeholder="请输入要查询的机构"></a-input>
             </a-form-item>
           </a-col>
-          <a-col :md="8" :sm="24">
-            <a-form-item label="更新时间">
-              <a-range-picker @change="onChange" :defaultValue="$route.query.defaultDate" />
+          <a-col :md="12" :sm="24">
+            <a-form-item label="时间">
+              <a-date-picker :default-value="$route.query.start_time" @change="(val) => this.queryParam.start_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择开始时间" />
+              <span> ---- </span>
+              <a-date-picker :default-value="$route.query.end_time" @change="(val) => this.queryParam.end_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col
@@ -20,7 +22,7 @@
             :sm="24">
             <a-button
               type="primary"
-              @click="$refs.table.refresh(true)">查询</a-button>
+              @click="get_table_data">查询</a-button>
             <a-button
               style="margin-left: 8px"
               @click="() => (queryParam = {})">重置</a-button>
@@ -32,10 +34,12 @@
     <div class="table-operator">
       <a-button
         type="primary"
-        @click="Close">返回首页</a-button>
+        @click="Close">返回</a-button>
       <a-button
         type="primary"
         @click="ExportExcel">导出Excel</a-button>
+      <span>只统计新增的数据</span>
+
     </div>
     <m-table
       ref="table"
@@ -45,7 +49,10 @@
       :columns="columns"
       :data="loadData">
       <template slot="TableName" slot-scope="text" >
-        {{ text | convert('L_TABLENAME') }}
+        <a-tooltip>
+          <template slot="title">根据更新时间统计新增的数据</template>
+          {{ text | convert('L_TABLENAME') }}
+        </a-tooltip>
       </template>
       <template
         slot="Failure"
@@ -66,21 +73,21 @@
 <script>
 import Papa from 'papaparse'
 import moment from 'moment'
-import { STable, MTable } from '@/components'
+import { MTable } from '@/components'
 import { GetPullResDetail } from '@/api/Statistics'
 import { getRowSpanCount, convert } from '@/utils/util'
 export default {
     name: 'TableList',
     components: {
-        STable,
         MTable
     },
     data () {
-        this.dateFormat = moment().subtract(1, 'days').format('YYYY-MM-DD')
         return {
             // 查询参数
             queryParam: {},
 			itemList: [],
+			defaultDate: [this.$route.query.start_time, this.$route.query.end_time],
+			time: {},
             District: [], // 区县
             name: [], // 机构名称
             params: {},
@@ -126,7 +133,7 @@ export default {
                     sorter: true
                 },
                 {
-                    title: '抽取数据量',
+                    title: '备库到中间库数据量',
                     dataIndex: 'Pull',
                     sorter: true
                 },
@@ -159,9 +166,10 @@ export default {
                             TableName: _.TableName,
                             Pull: _.Pull,
                             name: u.name,
-                            code: u.code,
+							code: u.code,
+							countyCode: result.data.code,
 							District: result.data.name,
-							keys: u.code + u.name + _.pull + _.Id + _.TableName + _.Failure
+							keys: _.code + u.name + _.pull + _.Id + _.TableName + _.Failure
                         })
                         this.District.push(result.data.name)
                         this.name.push(u.name)
@@ -177,22 +185,25 @@ export default {
 
     methods: {
         Close () {
-            this.$router.push('/pull/Extract/Home')
+			const obj = {
+					'start_time': this.$route.query.start_time,
+					'end_time': this.$route.query.end_time,
+					'code': this.$route.query.code
+				}
+            this.$router.push({ path: '/Contract/pull/Home', query: obj })
         },
         ErrorLog (row) {
-            if (row) {
 				const obj = {
 					code: row.code,
+					countyCode: row.countyCode,
 					TableName: row.TableName,
 					queryParam: this.queryParam,
 					start_time: this.queryParam.start_time,
 					end_time: this.queryParam.end_time,
-					is_town: true
+					is_town: 'false',
+					router: 'Contract/pull/District'
 				}
-                this.$router.push({ path: '/pull/Extract/Errorlog', query: obj })
-            } else {
-                this.$router.push('/pull/Extract/Errorlog')
-            }
+                this.$router.push({ path: '/error/Extractlog', query: obj })
         },
         ExportExcel () {
             this.result.forEach((u, index) => {
@@ -235,7 +246,22 @@ export default {
         },
         onChange (value) {
             this.queryParam.start_time = value
-        },
+		},
+		get_table_data () {
+			if (this.queryParam.start_time === 'Invalid date' && this.queryParam.end_time === 'Invalid date') {
+				this.$refs.table.refresh(true)
+				return true
+			}
+			if (this.queryParam.start_time || this.queryParam.end_time) {
+				if (this.queryParam.start_time && this.queryParam.end_time && this.queryParam.start_time !== 'Invalid date' && this.queryParam.end_time !== 'Invalid date') {
+					this.$refs.table.refresh(true)
+				} else {
+					this.$message.info('请选择完时间在查询')
+				}
+			} else {
+				this.$refs.table.refresh(true)
+			}
+		},
         moment
     }
 }

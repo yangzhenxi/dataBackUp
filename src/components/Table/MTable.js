@@ -31,7 +31,7 @@ export default {
         },
         pageSize: {
             type: Number,
-            default: 10
+            default: 20
         },
         showSizeChanger: {
             type: Boolean,
@@ -102,7 +102,7 @@ export default {
                         })
                         this.localPagination = this.showPagination && Object.assign({}, this.localPagination, {
                             current: this.parameter.current,
-                            pageSize: this.parameter.pageSize,
+                            pageSize: 20,
                             total: r.data.length,
                             showTotal: total => `共 ${total} 条数据`
                         }) || false
@@ -152,7 +152,7 @@ export default {
             this.localDataSource = this.calculate(this.parameter)
             this.localPagination = this.showPagination && Object.assign({}, this.localPagination, {
                 current: this.parameter.current,
-                pageSize: this.parameter.pageSize
+                pageSize: 20
             }) || false
             this.localLoading = false
         },

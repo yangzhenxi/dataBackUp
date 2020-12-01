@@ -119,7 +119,7 @@ export function welcome () {
 }
 
 export function getRowSpanCount (data, index) {
-    // debugger
+	// debugger
     let preValue = data[0] // 数组第一个
     const res = [[preValue]]
     let i = 0
@@ -180,4 +180,23 @@ export function throttle (func, wait = 500) {
             lastTime = now
         }
     }
+}
+
+/**
+ * 数组对象排序
+ * @param { property }
+ */
+export function compare (property) {
+	return function (obj1, obj2) {
+		var value1 = obj1[property]
+		var value2 = obj2[property]
+		// return value1 > value2 // 升序
+		if (value1 < value2) {
+			return -1
+		} else if (value1 > value2) {
+			return 1
+		} else {
+			return 0
+		}
+	}
 }

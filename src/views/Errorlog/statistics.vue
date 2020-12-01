@@ -17,7 +17,7 @@
     </div>
 
     <div class="table-operator">
-      <a-button type="primary" @click="Close">返回首页</a-button>
+      <a-button type="primary" v-if="$route.query.code" @click="Close">返回</a-button>
       <a-button type="primary" @click="ExportExcel">导出Excel</a-button>
     </div>
     <m-table
@@ -50,7 +50,8 @@ export default {
     data () {
         return {
 			itemList: [],
-            visible: false,
+			visible: false,
+			router: '',
 			// 查询参数
 			time: [],
             queryParam: {},
@@ -91,19 +92,15 @@ export default {
             // 加载数据方法 必须为 Promise 对象
             loadData: async parameter => {
 				this.result = []
-				console.log(this.$route.query)
+				this.router = this.$route.query.router
                 if (this.$route.query.code) {
                     const obj = {
                         'code': this.$route.query.code,
                         'table_name': this.$route.query.TableName,
                         'start_time': this.$route.query.start_time + ' ' + '00:00:00',
-                        'end_time': this.$route.query.end_time + ' ' + '00:00:00'
+                        'end_time': this.$route.query.end_time + ' ' + '23:59:59'
 					}
-					this.time = {
-						'start_time': this.$route.query.start_time,
-                        'end_time': this.$route.query.end_time
-					}
-					this.$route.query.is_town === 'true' ? obj.is_town = true : obj.is_town = false
+					this.$route.query.is_town === 'true' && this.$route.query.is_town ? obj.is_town = true : obj.is_town = false
                     this.result = deepGet(await GetlogErr(obj), 'data', [])
                 } else {
                     this.result = deepGet(await Getlog(), 'data', [])
@@ -118,7 +115,14 @@ export default {
 
     methods: {
         Close () {
-            this.$router.push({ path: '/Statistics/HomeMain/Home', query: this.time })
+			this.time = {
+				'start_time': this.$route.query.start_time,
+				'end_time': this.$route.query.end_time,
+				'code': this.$route.query.countyCode,
+				'town': this.$route.query.town || null
+			}
+			console.log(this.router)
+            this.$router.push({ path: '/' + `${this.router}`, query: this.time })
         },
         ExportExcel () {
             this.result.forEach((u, index) => {
