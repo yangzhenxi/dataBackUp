@@ -81,7 +81,7 @@ export const asyncRouterMap = [
 						hideChildrenInMenu: true,
 						component: RouteView,
 						redirect: '/Summary/Home',
-						meta: { title: '总结', keepAlive: true, permission: ['dashboard'] },
+						meta: { title: '数据质控汇总', keepAlive: true, permission: ['dashboard'] },
 						children: [
 							{
 								path: '/Summary/Home',
@@ -255,28 +255,28 @@ export const asyncRouterMap = [
                         meta: { title: '用户管理', keepAlive: true, icon: bxAnaalyse, permission: ['system'] }
                     }
                 ]
-			},
-			{
-				path: '/datacount',
-				name: 'datacount',
-				component: RouteView,
-				meta: { title: '数据统计', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] },
-				children: [
-					{
-						path: '/datacount/sumup',
-						name: 'sumup',
-						component: () => import('@/views/statistics/sumup/destrict'),
-						meta: { title: '总结', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
-					},
-					{
-						path: '/datacount/sumup/:sid',
-						name: 'sumup',
-						hidden: true,
-						component: () => import('@/views/statistics/sumup/mechanism'),
-						meta: { title: '总结', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
-					}
-				]
 			}
+			// {
+			// 	path: '/datacount',
+			// 	name: 'datacount',
+			// 	component: RouteView,
+			// 	meta: { title: '数据统计', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] },
+			// 	children: [
+			// 		{
+			// 			path: '/datacount/sumup',
+			// 			name: 'sumup',
+			// 			component: () => import('@/views/statistics/sumup/destrict'),
+			// 			meta: { title: '总结', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+			// 		},
+			// 		{
+			// 			path: '/datacount/sumup/:sid',
+			// 			name: 'sumup',
+			// 			hidden: true,
+			// 			component: () => import('@/views/statistics/sumup/mechanism'),
+			// 			meta: { title: '总结', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+			// 		}
+			// 	]
+			// }
         ]
     },
     {

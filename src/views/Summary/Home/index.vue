@@ -3,25 +3,32 @@
     <div class="table-page-search-wrapper">
       <a-form layout="inline">
         <a-row :gutter="48">
-          <a-col :md="4" :sm="24">
+          <a-col :md="8" :sm="24">
             <a-form-item label="数据集" >
               <a-select placeholder="请选择数据集" :default-value="dataList[0].code" @change="(val) => this.queryParam.town = val" allowClear >
                 <a-select-option v-for="(i,index) in dataList" :key="index" :value="i.code">{{ i.name }}</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
-          <a-col :md="4" :sm="24">
+          <a-col :md="8" :sm="24">
             <a-form-item label="区县" >
               <a-select placeholder="请选择区县" :default-value="$route.query.town ||districtList[0].code" @change="(val) => this.queryParam.town = val" allowClear >
                 <a-select-option v-for="(i,index) in districtList" :key="index" :value="i.code">{{ i.town }}</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
-          <a-col :md="10" :sm="24">
+          <a-col :md="8" :sm="24">
             <a-form-item label="时间">
               <a-date-picker :default-value="$route.query.start_time || default_start_time" @change="(val) => this.queryParam.start_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择开始时间" />
               <span> ---- </span>
               <a-date-picker :default-value="$route.query.end_time || default_end_time" @change="(val) => this.queryParam.end_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择结束时间" />
+            </a-form-item>
+          </a-col>
+          <a-col :md="8" :sm="24">
+            <a-form-item label="数据筛选">
+              <a-select placeholder="请选择要筛选的数据" :default-value="filterData[0].value" allowClear >
+                <a-select-option v-for="(i,index) in filterData" :key="index" :value="i.value">{{ i.name }}</a-select-option>
+              </a-select>
             </a-form-item>
           </a-col>
           <a-col :md="6" :sm="24">
@@ -92,6 +99,11 @@ export default {
 			District: [],
 			pull_result: [],
 			extract_result: [],
+			filterData: [
+				{ name: '全部', value: 'All' },
+				{ name: '数据量一致', value: 'On' },
+				{ name: '数据量不一致', value: 'OFF' }
+			],
             // 表头
             columns: [
                 {
@@ -100,23 +112,29 @@ export default {
                     align: 'center',
                     sorter: true,
                     customRender: (val, row, index) => {
-						const child = that.$createElement('a', {
-                            domProps: {
-                                innerHTML: row.District
-                            },
-                            on: {
-                                click: function () {
-                                    that.toDistrict(row)
-                                }
-                            }
-                        })
-                        const obj = {
-                            children: child,
-                            attrs: {
-                                rowSpan: that.getRowSpanCount(that.District, index)
-                            }
-                        }
-                        return obj
+						if (row.District !== '合计') {
+							const child = that.$createElement('a', {
+								domProps: {
+									innerHTML: row.District
+								},
+								on: {
+									click: function () {
+										that.toDistrict(row)
+									}
+								}
+							})
+							const obj = {
+								children: child,
+								attrs: {
+									rowSpan: that.getRowSpanCount(that.District, index)
+								}
+							}
+							return obj
+						} else {
+							return {
+								children: row.District
+							}
+						}
                     }
                 },
                 {
@@ -127,21 +145,26 @@ export default {
                     ellipsis: true
                 },
                 {
-                    title: '业务库到备库',
+                    title: '备库',
                     dataIndex: 'howlink',
                     sorter: true
                 },
                 {
-                    title: '备库到中间库',
+                    title: '中间库',
                     dataIndex: 'pull',
 					sorter: true,
                     scopedSlots: { customRender: 'pull_failure' }
                 },
                 {
-                    title: '中间库到联众库',
+                    title: '联众库',
                     sorter: true,
                     dataIndex: 'upload',
                     scopedSlots: { customRender: 'Extract_failure' }
+                },
+                {
+                    title: '业务库',
+                    sorter: true,
+                    dataIndex: 'yewu'
                 }
             ],
             result: [],
@@ -192,7 +215,6 @@ export default {
 					this.extract_result.push(...arr)
 				})
 				this.pull_result.forEach((u, o) => {
-					console.log(u)
 					if (u.TableName === 'QianYueDXX') {
 						uploadCount = uploadCount + this.extract_result[o].Upload
 						pullCount = pullCount + u.Pull
@@ -203,15 +225,17 @@ export default {
 						upload: this.extract_result[o].Upload,
 						pull: u.Pull,
 						howlink: '暂无数据',
+						yewu: '暂无数据',
 						Extract_failure: this.extract_result[o].Failure,
 						pull_failure: u.Failure,
 						District: this.District[o].name
 					})
 				})
 				this.result.push({
-					District: '温州市(全部)',
+					District: '合计',
 					TableName: 'QianYueDXX',
 					howlink: '暂无数据',
+					yewu: '暂无数据',
 					pull: pullCount,
 					upload: uploadCount,
 					Extract_failure: 0,
