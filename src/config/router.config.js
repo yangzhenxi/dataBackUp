@@ -27,75 +27,26 @@ export const asyncRouterMap = [
                 component: RouteView,
                 meta: { title: '数据统计', keepAlive: true, icon: bxAnaalyse, permission: ['dashboard'] },
                 children: [
-					// {
-					// 	path: '/Referral/pull',
-					// 	name: 'Referralpull',
-					// 	hideChildrenInMenu: true,
-					// 	redirect: '/Referral/pull/Home',
-					// 	component: RouteView,
-					// 	meta: { title: '抽取', keepAlive: true, permission: ['dashboard'] },
-					// 	children: [
-					// 		{
-					// 			path: '/Referral/pull/Home',
-					// 			name: 'ReferralHome',
-					// 			hidden: true,
-					// 			component: () => import('@/views/Referral/pull/Home'),
-					// 			meta: { title: '抽取日志', keepAlive: false, permission: ['dashboard'] }
-					// 		},
-					// 		{
-					// 			path: '/Referral/pull/District',
-					// 			name: 'ReferralDistrict',
-					// 			hidden: true,
-					// 			component: () => import('@/views/Referral/pull/District'),
-					// 			meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
-					// 		}
-					// 	]
-					// },
-					// {
-					// 	path: '/Contract/Statistics',
-					// 	name: 'ContractStatistics',
-					// 	hideChildrenInMenu: true,
-					// 	redirect: '/Contract/Statistics/Home',
-					// 	component: RouteView,
-					// 	meta: { title: '推送', keepAlive: false, permission: ['dashboard'] },
-					// 	children: [
-					// 		{
-					// 			path: '/Contract/Statistics/Home',
-					// 			name: 'ContractHome',
-					// 			hidden: true,
-					// 			component: () => import('@/views/Contract/Statistics/Home'),
-					// 			meta: { title: '推送日志', keepAlive: false, permission: ['dashboard'] }
-					// 		},
-					// 		{
-					// 			path: '/Contract/Statistics/District',
-					// 			name: 'ContractDistrict',
-					// 			hidden: true,
-					// 			component: () => import('@/views/Contract/Statistics/District'),
-					// 			meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
-					// 		}
-					// 	]
-					// }
 					{
-						path: '/Summary',
-						name: 'Summary',
+						path: '/datacount',
+						name: 'datacount',
 						hideChildrenInMenu: true,
-						component: RouteView,
-						redirect: '/Summary/Home',
+						// component: RouteView,
+						component: () => import('@/views/statistics/sumup/destrict'),
 						meta: { title: '数据质控汇总', keepAlive: true, permission: ['dashboard'] },
 						children: [
 							{
-								path: '/Summary/Home',
-								name: 'Pushlog',
-								hidden: true,
-								component: () => import('@/views/Summary/Home'),
-								meta: { title: '总结日志', keepAlive: false, permission: ['dashboard'] }
+								path: '/datacount/sumup',
+								name: 'sumup',
+								component: () => import('@/views/statistics/sumup/destrict'),
+								meta: { title: '数据质控汇总', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
 							},
 							{
-								path: '/Summary/District',
-								name: 'District',
+								path: '/datacount/sumup/:sid',
+								name: 'sumup',
 								hidden: true,
-								component: () => import('@/views/Summary/District'),
-								meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
+								component: () => import('@/views/statistics/sumup/mechanism'),
+								meta: { title: '机构', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
 							}
 						]
 					},

@@ -6,20 +6,34 @@
           <a-row :gutter="48">
             <a-col :md="8" :sm="24">
               <a-form-item label="数据集">
-                <a-select placeholder="请选择数据集" allowClear>
-                  <a-select-option v-for="(i,index) in dataList" :key="index" :value="i.val">{{ i.title }}</a-select-option>
+                <a-select placeholder="请选择数据集" v-model="queryParam.data">
+                  <a-select-option v-for="(i,index) in dataList" :key="index" :value="i.value">{{ i.title }}</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
               <a-form-item label="区县">
-                <a-date-picker v-model="queryParam.start_time" ></a-date-picker>
-                <span>---</span>
-                <a-date-picker v-model="queryParam.end_time"></a-date-picker>
+                <a-select placeholder="请选择数据集" v-model="queryParam.town">
+                  <a-select-option v-for="(i,index) in districtList" :key="index" :value="i.code">{{ i.town }}</a-select-option>
+                </a-select>
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
-              <a-button type="primary" @click="get_table_data">查询</a-button>
+              <a-form-item label="时间">
+                <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" :allowClear="false" ></a-date-picker>
+                <span>---</span>
+                <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" :allowClear="false"></a-date-picker>
+              </a-form-item>
+            </a-col>
+            <a-col :md="8" :sm="24">
+              <a-form-item label="数据筛选">
+                <a-select placeholder="请选择要筛选的数据" :default-value="filterData[0].value" allowClear >
+                  <a-select-option v-for="(i,index) in filterData" :key="index" :value="i.value">{{ i.name }}</a-select-option>
+                </a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :md="8" :sm="24">
+              <a-button type="primary" @click="$refs.table.refresh(true)">查询</a-button>
               <a-button style="margin: 0px 10px 20px" @click="() => (queryParam = {})">重置</a-button>
             </a-col>
           </a-row>
@@ -64,13 +78,11 @@ export default {
 			that: this,
 			result: [],
 			District: [],
-			dataList: [
-				{ title: '签约', key: 'qy' },
-				{ title: '转诊', key: 'zz' }
-			],
 			queryParam: {
-				start_time: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-				end_time: moment().subtract(1, 'days').format('YYYY-MM-DD')
+				start_time: moment().subtract(10, 'days').format('YYYY-MM-DD'),
+				end_time: moment().subtract(10, 'days').format('YYYY-MM-DD'),
+				town: '',
+				data: 1
 			},
 			// 表头
             columns: [
@@ -80,23 +92,30 @@ export default {
                     align: 'center',
                     sorter: true,
                     customRender: (val, row, index) => {
-						const child = that.$createElement('a', {
-                            domProps: {
-                                innerHTML: row.destrict
-                            },
-                            on: {
-                                click: function () {
-                                    that.toDistrict(row)
-                                }
-                            }
-                        })
-                        const obj = {
-                            children: child,
-                            attrs: {
-                                rowSpan: that.getRowSpanCount(that.District, index)
-                            }
-                        }
-                        return obj
+						console.log(row.destrict)
+					if (row.destrict !== '总计') {
+							const child = that.$createElement('a', {
+								domProps: {
+									innerHTML: row.destrict
+								},
+								on: {
+									click: function () {
+										that.toDistrict(row)
+									}
+								}
+							})
+							const obj = {
+								children: child,
+								attrs: {
+									rowSpan: that.getRowSpanCount(that.District, index)
+								}
+							}
+							return obj
+						} else {
+							return {
+								children: row.destrict
+							}
+						}
                     }
                 },
                 {
@@ -105,20 +124,25 @@ export default {
                     dataIndex: 'TableName',
                     scopedSlots: { customRender: 'TableName' },
                     ellipsis: true
+				},
+				{
+                    title: '备库',
+                    sorter: true,
+                    dataIndex: 'backup'
                 },
                 {
-                    title: '业务库到备库',
-                    dataIndex: 'howlink',
+                    title: '业务库',
+                    dataIndex: 'main',
                     sorter: true
                 },
                 {
-                    title: '备库到中间库',
+                    title: '中间库',
                     dataIndex: 'pull',
 					sorter: true,
                     scopedSlots: { customRender: 'pull_failure' }
                 },
                 {
-                    title: '中间库到联众库',
+                    title: '联众库',
                     sorter: true,
                     dataIndex: 'upload',
                     scopedSlots: { customRender: 'Extract_failure' }
@@ -152,6 +176,15 @@ export default {
 						})
 					})
 				})
+				this.result.push({
+					destrict: '总计',
+					TableName: 'QianYueDXX',
+					howlink: '暂无数据',
+					pull: 0,
+					upload: 0,
+					Extract_failure: 0,
+					pull_failure: 0
+				})
 				return {
 					data: this.result
 				}
@@ -162,20 +195,8 @@ export default {
 		toDistrict (row) {
 			this.$router.push({ path: `/datacount/sumup/${row.code}` })
 		},
-		get_table_data () {
-			if (this.queryParam.start_time === 'Invalid date' && this.queryParam.end_time === 'Invalid date') {
-				this.$refs.table.refresh(true)
-				return true
-			}
-			if (this.queryParam.start_time || this.queryParam.end_time) {
-				if (this.queryParam.start_time && this.queryParam.end_time && this.queryParam.start_time !== 'Invalid date' && this.queryParam.end_time !== 'Invalid date') {
-					this.$refs.table.refresh(true)
-				} else {
-					this.$message.info('请选择完时间在查询')
-				}
-			} else {
-				this.$refs.table.refresh(true)
-			}
+		disabledDate (current) {
+			return current && current > moment().endOf('day')
 		},
 		getRowSpanCount
 	}

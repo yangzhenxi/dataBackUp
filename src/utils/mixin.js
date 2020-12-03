@@ -8,7 +8,32 @@ const mixinTable = {
             queryParam: {},
             selectedRowKeys: [],
             selectedRows: [],
-            deleteInput: null
+			deleteInput: null,
+			dataList: [
+				{ title: '签约', value: 0 },
+				{ title: '转诊', value: 1 }
+			],
+			filterData: [
+				{ name: '全部', value: 'All' },
+				{ name: '数据量一致', value: 'On' },
+				{ name: '数据量不一致', value: 'OFF' }
+			],
+			districtList: [
+				{ code: '', town: '全部' },
+                { code: '3303', town: '温州市(其他)' },
+                { code: '330301', town: '市本级' },
+                { code: '330302', town: '鹿城区' },
+                { code: '330303', town: '龙湾区' },
+                { code: '330304', town: '瓯海区' },
+                { code: '330322', town: '洞头县' },
+                { code: '330324', town: '永嘉县' },
+                { code: '330326', town: '平阳县' },
+                { code: '330328', town: '文成县' },
+                { code: '330329', town: '泰顺县' },
+                { code: '330381', town: '瑞安市' },
+                { code: '330382', town: '乐清市' },
+                { code: '330399', town: '经开区' }
+			]
         }
     },
     computed: {
