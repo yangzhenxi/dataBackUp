@@ -5,7 +5,7 @@
         <a-row :gutter="48">
           <a-col :md="8" :sm="24">
             <a-form-item label="数据集" >
-              <a-select placeholder="请选择数据集" :default-value="dataList[0].code" @change="(val) => this.queryParam.town = val" allowClear >
+              <a-select placeholder="请选择数据集" v-model="this.queryParam.data_set" allowClear >
                 <a-select-option v-for="(i,index) in dataList" :key="index" :value="i.code">{{ i.name }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -19,9 +19,9 @@
           </a-col>
           <a-col :md="8" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker :default-value="$route.query.start_time || default_start_time" @change="(val) => this.queryParam.start_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择开始时间" />
+              <a-date-picker v-model="this.queryParam.start_time" placeholder="请选择开始时间" />
               <span> ---- </span>
-              <a-date-picker :default-value="$route.query.end_time || default_end_time" @change="(val) => this.queryParam.end_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择结束时间" />
+              <a-date-picker v-model="this.queryParam.end_time" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col :md="8" :sm="24">
@@ -55,17 +55,17 @@
         <div class="flex">
           <span>{{ text }}</span>
           <a-button
-            v-show="record.pull_failure!==0"
+            v-show="record.pull_error !==0"
             type="primary"
             size="small"
             @click="ErrorLog(record ,'Extractlog')">查看错误日志({{ record.pull_failure }}个)</a-button>
         </div>
       </template>
-      <template slot="Extract_failure" slot-scope="text,record">
+      <template slot="upload_failure" slot-scope="text,record">
         <div class="flex">
           <span>{{ text }}</span>
           <a-button
-            v-show="record.Extract_failure!==0"
+            v-show="record.upload_error!==0"
             type="primary"
             size="small"
             @click="ErrorLog(record,'statisticslog')">查看错误日志({{ record.Extract_failure }}个)</a-button>
@@ -79,7 +79,7 @@
 import Papa from 'papaparse'
 import moment from 'moment'
 import { MTable, STable } from '@/components'
-import { Getres, GetPullRes } from '@/api/Statistics'
+import { getAllList } from '@/api/Statistics'
 import { convert, deepGet, compare } from '@/utils/util'
 let that = Object
 export default {
@@ -94,8 +94,11 @@ export default {
     data () {
         return {
 			that: this,
-			default_start_time: moment().subtract(1, 'days').format('YYYY-MM-DD'),
-			default_end_time: moment().subtract(1, 'days').format('YYYY-MM-DD'),
+			queryParam: {
+				data_set: 0,
+				start_time: moment().subtract(1, 'days').format('YYYY-MM-DD'),
+				end_time: moment().subtract(1, 'days').format('YYYY-MM-DD')
+			},
 			District: [],
 			pull_result: [],
 			extract_result: [],
@@ -108,14 +111,14 @@ export default {
             columns: [
                 {
                     title: '区县',
-                    dataIndex: 'name',
+                    dataIndex: 'destrict',
                     align: 'center',
                     sorter: true,
                     customRender: (val, row, index) => {
-						if (row.District !== '合计') {
+						if (row.destrict !== '合计') {
 							const child = that.$createElement('a', {
 								domProps: {
-									innerHTML: row.District
+									innerHTML: row.destrict
 								},
 								on: {
 									click: function () {
@@ -132,7 +135,7 @@ export default {
 							return obj
 						} else {
 							return {
-								children: row.District
+								children: row.destrict
 							}
 						}
                     }
@@ -140,37 +143,42 @@ export default {
                 {
                     title: '表名',
                     sorter: true,
-                    dataIndex: 'TableName',
+					dataIndex: 'TableName',
+                    align: 'center',
                     scopedSlots: { customRender: 'TableName' },
                     ellipsis: true
+				},
+				{
+                    title: '业务库',
+					sorter: true,
+                    align: 'center',
+                    dataIndex: 'main_nums'
                 },
                 {
-                    title: '备库',
-                    dataIndex: 'howlink',
+					title: '备库',
+                    align: 'center',
+                    dataIndex: 'backup_nums',
                     sorter: true
                 },
                 {
-                    title: '中间库',
-                    dataIndex: 'pull',
-					sorter: true,
-                    scopedSlots: { customRender: 'pull_failure' }
+					title: '中间库',
+                    align: 'center',
+					dataIndex: 'pull_nums',
+					scopedSlots: { customRender: 'pull_failure' },
+					sorter: true
                 },
                 {
                     title: '联众库',
-                    sorter: true,
-                    dataIndex: 'upload',
-                    scopedSlots: { customRender: 'Extract_failure' }
-                },
-                {
-                    title: '业务库',
-                    sorter: true,
-                    dataIndex: 'yewu'
+					sorter: true,
+                    align: 'center',
+					scopedSlots: { customRender: 'upload_failure' },
+                    dataIndex: 'upload_nums'
                 }
             ],
             result: [],
             dataList: [
-                { code: 'Contract', name: '签约' }
-                // { code: 'Referral', name: '转诊' }
+                { code: 0, name: '签约' }
+                // { code: 1, name: '转诊' }
 			],
 			districtList: [
                 { code: '', town: '全部' },
@@ -191,57 +199,50 @@ export default {
             // 加载数据方法 必须为 Promise 对象
             loadData: async (parameter) => {
 				this.result = []
-				this.District = []
-				this.pull_result = []
-				this.extract_result = []
 				let uploadCount = 0
 				let pullCount = 0
-				if (this.$route.query) { this.queryParam = this.$route.query }
-				if (!this.queryParam.start_time) {
-					this.queryParam.start_time = moment().subtract(1, 'days').format('YYYY-MM-DD')
-					this.queryParam.end_time = moment().subtract(1, 'days').format('YYYY-MM-DD')
-				}
-                const [pull, Extract] = (await Promise.all([GetPullRes(this.queryParam), Getres(this.queryParam)].map(api => api.catch(e => null))))
-				const pulldata = deepGet(pull, 'data', [])
-				const extract = deepGet(Extract, 'data', [])
-				pulldata.forEach(u => {
-					this.pull_result.push(...u.res.sort(compare('TableName')))
-					u.res.forEach(o => {
-						this.District.push(u)
-					})
-				})
-				extract.forEach(u => {
-					const arr = u.res.sort(compare('TableName'))
-					this.extract_result.push(...arr)
-				})
-				this.pull_result.forEach((u, o) => {
-					if (u.TableName === 'QianYueDXX') {
-						uploadCount = uploadCount + this.extract_result[o].Upload
-						pullCount = pullCount + u.Pull
+				let mianCount = 0
+				let backupCount = 0
+				if (this.$route.query.start_time) { this.queryParam = this.$route.query }
+				const data = deepGet(await getAllList(this.queryParam), 'data', {})
+				const main = deepGet(deepGet(data, 'main', {}), 'data', [])
+				const backup = deepGet(deepGet(data, 'backup', {}), 'data', [])
+				const pull = deepGet(deepGet(data, 'pull', {}), 'data', [])
+				const upload = deepGet(deepGet(data, 'upload', {}), 'data', [])
+				const mainRes = this.structure(main)
+				const backupRes = this.structure(backup)
+				const pullRes = this.structure(pull)
+				const uploadRes = this.structure(upload)
+				mainRes.forEach((item, index) => {
+					uploadCount = uploadCount + uploadRes[index].upload
+					pullCount = pullCount + pullRes[index].pull
+					mianCount = mianCount + item.nums
+					backupCount = backupCount + backupRes[index].nums
+					const obj = {
+						TableName: item.table_name,
+						code: item.code,
+						destrict: item.destrict,
+						upload_nums: uploadRes[index].upload,
+						pull_nums: pullRes[index].pull,
+						main_nums: item.nums,
+						backup_nums: backupRes[index].nums,
+						pull_error: pullRes[index].error,
+						upload_error: uploadRes[index].error
+
 					}
-					this.result.push({
-						code: this.District[o].code,
-						TableName: u.TableName,
-						upload: this.extract_result[o].Upload,
-						pull: u.Pull,
-						howlink: '暂无数据',
-						yewu: '暂无数据',
-						Extract_failure: this.extract_result[o].Failure,
-						pull_failure: u.Failure,
-						District: this.District[o].name
-					})
+					this.result.push(obj)
 				})
 				this.result.push({
-					District: '合计',
 					TableName: 'QianYueDXX',
-					howlink: '暂无数据',
-					yewu: '暂无数据',
-					pull: pullCount,
-					upload: uploadCount,
-					Extract_failure: 0,
-					pull_failure: 0
+					destrict: '合计',
+					upload_nums: uploadCount,
+					pull_nums: pullCount,
+					main_nums: mianCount,
+					pull_error: 0,
+					upload_error: 0,
+					backup_nums: backupCount
 				})
-				this.District.push({ name: '温州市(全部)' })
+				this.District.push('合计')
 				return {
                     data: this.result
                 }
@@ -250,16 +251,13 @@ export default {
 	},
     methods: {
 		toDistrict (row) {
-			if (row.name !== '温州市(全部)') {
 				const obj = {
 					code: row.code,
 					start_time: this.queryParam.start_time,
 					end_time: this.queryParam.end_time,
-					town: this.queryParam.town,
-					table_data_type: this.table_data_type
+					data_set: this.queryParam.data_set
 				}
 				this.$router.push({ path: '/Summary/District', query: obj })
-			}
         },
         ErrorLog (row, router) {
 			const obj = {
@@ -344,6 +342,24 @@ export default {
 			} else {
 				this.$refs.table.refresh(true)
 			}
+		},
+		structure (arr) {
+			const arrs = []
+			this.District = []
+			arr.forEach(u => {
+				const res = deepGet(u, 'res', [])
+				res.forEach(item => {
+					this.District.push(u.name)
+					item.destrict = u.name
+					item.code = u.code
+					item.error = item.Failure || 0
+				})
+				if (res.length >= 2) {
+				res.sort(compare('table_name'))
+				}
+				arrs.push(...res)
+			})
+			return arrs
 		},
         moment
     }

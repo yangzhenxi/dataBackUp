@@ -84,7 +84,7 @@
 import Papa from 'papaparse'
 import moment from 'moment'
 import { MTable } from '@/components'
-import { GetPullResDetail, GetresDetail } from '@/api/Statistics'
+import { getAllDetail } from '@/api/Statistics'
 import { getRowSpanCount, convert, deepGet, compare } from '@/utils/util'
 export default {
     name: 'TableList',
@@ -98,22 +98,22 @@ export default {
 			itemList: [],
 			defaultDate: [this.$route.query.start_time, this.$route.query.end_time],
 			time: {},
-            District: [], // 区县
+			Districts: [], // 区县
+			district: '',
             name: [], // 机构名称
             params: {},
-            default: () => {
-                return moment('2015-06-06', 'YYYY-MM-DD')
-            },
             // 表头
             columns: [
                 {
                     title: '区县',
 					align: 'center',
-                    dataIndex: 'District',
+                    dataIndex: 'destrict',
                     sorter: true,
                     customRender: (val, row, index) => {
+						console.log(val)
+						console.log(row)
                         const obj = {
-                            children: this.District[0],
+                            children: val,
                             attrs: {}
                         }
                         const i = getRowSpanCount(this.District, index)
@@ -127,10 +127,11 @@ export default {
                     ellipsis: true,
 					sorter: true,
 					customRender: (val, row, index) => {
+						// console.log(row)
                         const obj = {
                             children: val,
                             attrs: {}
-                        }
+						}
                         const i = getRowSpanCount(this.name, index)
                         obj.attrs.rowSpan = i
                         return obj
@@ -144,59 +145,70 @@ export default {
                     sorter: true
                 },
                 {
-                    title: '业务库到备库',
-                    dataIndex: 'howlink',
-                    sorter: true
-				},
-				{
-                    title: '备库到中间库数据量',
-                    dataIndex: 'Pull',
+                    title: '业务库',
 					sorter: true,
-                    scopedSlots: { customRender: 'pullFailure' }
+                    align: 'center',
+                    dataIndex: 'main_nums'
                 },
                 {
-                    title: '中间库到联众库',
-                    sorter: true,
-                    dataIndex: 'upload',
-                    scopedSlots: { customRender: 'uploadFailure' }
+					title: '备库',
+                    align: 'center',
+                    dataIndex: 'backup_nums',
+                    sorter: true
+                },
+                {
+					title: '中间库',
+                    align: 'center',
+					dataIndex: 'pull_nums',
+					scopedSlots: { customRender: 'pull_failure' },
+					sorter: true
+                },
+                {
+                    title: '联众库',
+					sorter: true,
+                    align: 'center',
+					scopedSlots: { customRender: 'upload_failure' },
+                    dataIndex: 'upload_nums'
                 }
             ],
             // 加载数据方法 必须为 Promise 对象
             loadData: async (parameter) => {
 				this.result = []
-				const organizationsCode = []
-				const pullData = []
-				const extractData = []
-				this.queryParam.code = this.$route.query.code // 县或者机构都行
-				this.queryParam.start_time = this.$route.query.start_time // 起始时间
-				this.queryParam.end_time = this.$route.query.end_time // 结束时间
-                const [pulls, Extracts] = (await Promise.all([GetPullResDetail(this.queryParam), GetresDetail(this.queryParam)].map(api => api.catch(e => null))))
-				const pull = deepGet(deepGet(pulls, 'data', []), 'organizations')
-				const Extract = deepGet(deepGet(Extracts, 'data', []), 'organizations', [])
-				pull.forEach(u => {
-					pullData.push(...u.res.sort(compare('TableName')))
-					u.res.forEach(o => {
-						this.District.push(pulls.data.name)
-						this.name.push(u.name)
-						organizationsCode.push(u.code)
-					})
-				})
-				Extract.forEach(u => {
-					extractData.push(...u.res.sort(compare('TableName')))
-				})
-                pullData.forEach((u, o) => {
-                    this.result.push({
-						countyCode: pulls.data.code,
-						code: organizationsCode[o],
-						TableName: u.TableName,
-						upload: extractData[o].Upload,
-						Pull: u.Pull,
-						howlink: '暂无数据',
-						Extract_failure: extractData[o].Failure,
-						pull_failure: u.Failure,
-						name: this.name[o],
-						District: this.District[o]
-					})
+				this.district = ''
+				let uploadCount = 0
+				let pullCount = 0
+				let mianCount = 0
+				let backupCount = 0
+				this.$route.query.data_set = +this.$route.query.data_set
+				const data = deepGet(await getAllDetail(this.$route.query), 'data', {})
+				this.district = deepGet(deepGet(data, 'main', {}), 'name', '')
+				const main = deepGet(deepGet(data, 'main', {}), 'organizations', [])
+				const backup = deepGet(deepGet(data, 'backup', {}), 'organizations', [])
+				const pull = deepGet(deepGet(data, 'pull', {}), 'organizations', [])
+				const upload = deepGet(deepGet(data, 'upload', {}), 'organizations', [])
+				const mainRes = this.structure(main)
+				const backupRes = this.structure(backup)
+				const pullRes = this.structure(pull)
+				const uploadRes = this.structure(upload)
+				mainRes.forEach((item, index) => {
+					uploadCount = uploadCount + uploadRes[index].upload
+					pullCount = pullCount + pullRes[index].pull
+					mianCount = mianCount + item.nums
+					backupCount = backupCount + backupRes[index].nums
+					const obj = {
+						TableName: item.table_name,
+						code: item.code,
+						destrict: this.district,
+						name: item.name,
+						upload_nums: uploadRes[index].upload,
+						pull_nums: pullRes[index].pull,
+						main_nums: item.nums,
+						backup_nums: backupRes[index].nums,
+						pull_error: pullRes[index].error,
+						upload_error: uploadRes[index].error
+
+					}
+					this.result.push(obj)
 				})
                 return {
                     data: this.result,
@@ -283,6 +295,27 @@ export default {
 			} else {
 				this.$refs.table.refresh(true)
 			}
+		},
+		structure (arr) {
+			const arrs = []
+			this.District = []
+			this.name = []
+			arr.forEach(u => {
+				const res = deepGet(u, 'res', [])
+				res.forEach(item => {
+					this.name.push(u.name)
+					this.District.push(this.destrict)
+					item.destrict = u.name
+					item.name = u.name
+					item.code = u.code
+					item.error = item.Failure || 0
+				})
+				if (res.length >= 2) {
+				res.sort(compare('table_name'))
+				}
+				arrs.push(...res)
+			})
+			return arrs
 		},
         moment
     }
