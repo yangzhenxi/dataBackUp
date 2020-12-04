@@ -12,9 +12,9 @@
           </a-col>
           <a-col :md="8" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker :default-value="$route.query.start_time" @change="(val) => this.queryParam.start_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择开始时间" />
+              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" placeholder="请选择开始时间" />
               <span> ---- </span>
-              <a-date-picker :default-value="$route.query.end_time" @change="(val) => this.queryParam.end_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择结束时间" />
+              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col
@@ -22,7 +22,7 @@
             :sm="24">
             <a-button
               type="primary"
-              @click="get_table_data">查询</a-button>
+              @click="$refs.table.refresh(true)">查询</a-button>
             <a-button
               style="margin-left: 8px"
               @click="() => (queryParam = {})">重置</a-button>
@@ -69,29 +69,32 @@
 </template>
 
 <script>
-import Papa from 'papaparse'
 import moment from 'moment'
+import Papa from 'papaparse'
 import { MTable } from '@/components'
-import { GetresDetail, GetReferralresDetail } from '@/api/Statistics'
+import { mixinTable } from '@/utils/mixin'
+import { GetresDetail } from '@/api/Statistics'
 import { getRowSpanCount, convert, deepGet } from '@/utils/util'
 export default {
-    name: 'TableList',
+	name: 'TableList',
+	mixins: [mixinTable],
     components: {
         MTable
     },
     data () {
         return {
-            // 查询参数
-			queryParam: {},
             District: [], // 区县
             name: [], // 机构名称
 			params: {},
+			queryParam: { 	// 查询数据库条件
+				start_time: this.$route.query.start_time,
+				end_time: this.$route.query.end_time
+			},
             // 表头
             columns: [
                 {
                     title: '区县',
                     align: 'center',
-                    sorter: true,
                     customRender: (val, row, index) => {
                         const obj = {
                             children: this.District[0],
@@ -105,6 +108,7 @@ export default {
                 {
                     title: '机构名称',
 					dataIndex: 'name',
+					align: 'center',
 					ellipsis: true,
                     sorter: true,
 					customRender: (val, row, index) => {
@@ -121,22 +125,23 @@ export default {
                     title: '表名',
                     dataIndex: 'TableName',
                     scopedSlots: { customRender: 'TableName' },
-                    ellipsis: true,
-                    sorter: true
+					ellipsis: true,
+                    align: 'center'
                 },
                 {
                     title: '备库到中间库数据量',
                     dataIndex: 'Upload',
-                    sorter: true
+                    align: 'center'
+
                 },
                 {
                     title: '成功数',
                     dataIndex: 'Success',
-                    sorter: true
+                    align: 'center'
                 },
                 {
                     title: '失败数',
-                    sorter: true,
+                    align: 'center',
                     dataIndex: 'Failure',
                     scopedSlots: { customRender: 'Failure' }
                 }
@@ -144,25 +149,26 @@ export default {
             // 加载数据方法 必须为 Promise 对象
             loadData: async (parameter) => {
 				this.result = []
-				let result = {}
-				this.$route.query.table_data_type === 'Getres' ? result = await GetresDetail(this.$route.query) : result = GetReferralresDetail(this.$route.query)
-                this.result = []
-                result.data.organizations.forEach(u => {
+				this.queryParam.code = this.code
+				this.queryParam.start_time = moment(this.queryParam.start_time).format('YYYY-MM-DD')
+				this.queryParam.end_time = moment(this.queryParam.end_time).format('YYYY-MM-DD')
+				const data = deepGet(await GetresDetail(this.queryParam), 'data', {})
+				const District = deepGet(data, 'name', '')
+				const organizations = deepGet(data, 'organizations', [])
+                organizations.forEach(u => {
 					const arr = deepGet(u, 'res', [])
                     arr.forEach((_, p) => {
+						console.log(u.code)
                         this.result.push({
-                            Failure: _.Failure,
-                            Id: _.Id,
-                            Success: _.Success,
-                            TableName: _.TableName,
-                            Upload: _.Upload,
-                            name: u.name,
-							countyCode: result.data.code,
+                            Failure: _.failure,
+                            Success: _.success,
+                            TableName: _.table_name,
+                            Upload: _.upload,
+							name: u.name,
 							code: u.code,
-							keys: u.code + u.name + _.Failure + _.Id + _.TableName + _.Upload,
-                            District: result.data.name
+                            District: District
                         })
-						this.District.push(result.data.name)
+						this.District.push(District)
                         this.name.push(u.name)
                     })
                 })
@@ -172,31 +178,22 @@ export default {
                 }
             }
         }
-    },
-
+	},
+	computed: {
+		code () {
+			return this.$route.path.split('/')[4]
+		}
+	},
     methods: {
         Close () {
-			const obj = {
-				'start_time': this.$route.query.start_time,
-				'end_time': this.$route.query.end_time,
-				'town': this.$route.query.town
-				// 'table_data_type': this.$route.query.table_data_type
-			}
-			console.log(obj)
-            this.$router.push({ path: '/Contract/Statistics/Home', query: obj })
+            this.$router.push({ path: '/Statistics/SignUp/upload', query: this.$route.query })
         },
         ErrorLog (row) {
-			const obj = {
-				code: row.code,
-				countyCode: row.countyCode,
-				TableName: row.TableName,
-				queryParam: this.queryParam,
-				start_time: this.queryParam.start_time,
-				end_time: this.queryParam.end_time,
-				is_town: 'false',
-				router: 'Contract/Statistics/District'
-			}
-            this.$router.push({ path: '/error/statisticslog', query: obj })
+			this.queryParam.code = row.code
+			this.queryParam.table_name = row.TableName
+			this.queryParam.router = `Statistics/SignUp/upload/${row.code}`
+			this.queryParam.is_town = 'false'
+            this.$router.push({ path: '/error/statisticslog', query: this.queryParam })
         },
         ExportExcel () {
 			const itemList = []
@@ -226,27 +223,7 @@ export default {
             el.click()
             // 移除链接释放资源
             urlObject.revokeObjectURL(url)
-        },
-		onChange (date, dateString) {
-			this.queryParam.start_time = dateString[0]
-			this.queryParam.end_time = dateString[1]
-		},
-		get_table_data () {
-			if (this.queryParam.start_time === 'Invalid date' && this.queryParam.end_time === 'Invalid date') {
-				this.$refs.table.refresh(true)
-				return true
-			}
-			if (this.queryParam.start_time || this.queryParam.end_time) {
-				if (this.queryParam.start_time && this.queryParam.end_time && this.queryParam.start_time !== 'Invalid date' && this.queryParam.end_time !== 'Invalid date') {
-					this.$refs.table.refresh(true)
-				} else {
-					this.$message.info('请选择完时间在查询')
-				}
-			} else {
-				this.$refs.table.refresh(true)
-			}
-		},
-        moment
+        }
     }
 }
 </script>

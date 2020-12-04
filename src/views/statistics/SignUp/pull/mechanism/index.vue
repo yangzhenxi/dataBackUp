@@ -12,9 +12,9 @@
           </a-col>
           <a-col :md="12" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker :default-value="$route.query.start_time" @change="(val) => this.queryParam.start_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择开始时间" />
+              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" placeholder="请选择开始时间" />
               <span> ---- </span>
-              <a-date-picker :default-value="$route.query.end_time" @change="(val) => this.queryParam.end_time = moment(val).format('YYYY-MM-DD')" placeholder="请选择结束时间" />
+              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col
@@ -22,7 +22,7 @@
             :sm="24">
             <a-button
               type="primary"
-              @click="get_table_data">查询</a-button>
+              @click="$refs.table.refresh(true)">查询</a-button>
             <a-button
               style="margin-left: 8px"
               @click="() => (queryParam = {})">重置</a-button>
@@ -38,6 +38,8 @@
       <a-button
         type="primary"
         @click="ExportExcel">导出Excel</a-button>
+      <span>只统计新增的数据</span>
+
     </div>
     <m-table
       ref="table"
@@ -53,27 +55,15 @@
         </a-tooltip>
       </template>
       <template
-        slot="pullFailure"
+        slot="Failure"
         slot-scope="text,record">
         <div class="flex">
           <span>{{ text }}</span>
           <a-button
-            v-show="record.pull_failure!==0"
+            v-show="text!==0"
             type="primary"
             size="small"
-            @click="ErrorLog(record,'Extractlog')">查看错误日志({{ record.pull_failure }}个)</a-button>
-        </div>
-      </template>
-      <template
-        slot="uploadFailure"
-        slot-scope="text,record">
-        <div class="flex">
-          <span>{{ text }}</span>
-          <a-button
-            v-show="record.Extract_failure!==0"
-            type="primary"
-            size="small"
-            @click="ErrorLog(record,'statisticslog')">查看错误日志({{ record.Extract_failure }}个)</a-button>
+            @click="ErrorLog(record)">查看错误日志</a-button>
         </div>
       </template>
     </m-table>
@@ -84,8 +74,8 @@
 import Papa from 'papaparse'
 import moment from 'moment'
 import { MTable } from '@/components'
-import { GetPullResDetail, GetresDetail } from '@/api/Statistics'
-import { getRowSpanCount, convert, deepGet, compare } from '@/utils/util'
+import { GetPullResDetail } from '@/api/Statistics'
+import { getRowSpanCount, convert, deepGet } from '@/utils/util'
 export default {
     name: 'TableList',
     components: {
@@ -93,24 +83,18 @@ export default {
     },
     data () {
         return {
-            // 查询参数
-            queryParam: {},
-			itemList: [],
-			defaultDate: [this.$route.query.start_time, this.$route.query.end_time],
-			time: {},
-            District: [], // 区县
+			District: [], // 区县
             name: [], // 机构名称
             params: {},
-            default: () => {
-                return moment('2015-06-06', 'YYYY-MM-DD')
-            },
+            queryParam: { 	// 查询数据库条件
+				start_time: this.$route.query.start_time,
+				end_time: this.$route.query.end_time
+			},
             // 表头
             columns: [
                 {
                     title: '区县',
-					align: 'center',
-                    dataIndex: 'District',
-                    sorter: true,
+                    align: 'center',
                     customRender: (val, row, index) => {
                         const obj = {
                             children: this.District[0],
@@ -123,9 +107,9 @@ export default {
                 },
                 {
                     title: '机构名称',
-                    dataIndex: 'name',
+					dataIndex: 'name',
+                    align: 'center',
                     ellipsis: true,
-					sorter: true,
 					customRender: (val, row, index) => {
                         const obj = {
                             children: val,
@@ -140,63 +124,52 @@ export default {
                     title: '表名',
                     dataIndex: 'TableName',
                     scopedSlots: { customRender: 'TableName' },
-                    ellipsis: true,
+					ellipsis: true,
+                    align: 'center',
                     sorter: true
                 },
                 {
-                    title: '业务库到备库',
-                    dataIndex: 'howlink',
-                    sorter: true
-				},
-				{
                     title: '备库到中间库数据量',
-                    dataIndex: 'Pull',
-					sorter: true,
-                    scopedSlots: { customRender: 'pullFailure' }
+					dataIndex: 'Pull',
+                    align: 'center',
+                    sorter: true
                 },
                 {
-                    title: '中间库到联众库',
+                    title: '成功数',
+					dataIndex: 'Success',
+                    align: 'center',
+                    sorter: true
+                },
+                {
+                    title: '失败数',
                     sorter: true,
-                    dataIndex: 'upload',
-                    scopedSlots: { customRender: 'uploadFailure' }
+					dataIndex: 'Failure',
+                    align: 'center',
+                    scopedSlots: { customRender: 'Failure' }
                 }
             ],
             // 加载数据方法 必须为 Promise 对象
             loadData: async (parameter) => {
 				this.result = []
-				const organizationsCode = []
-				const pullData = []
-				const extractData = []
-				this.queryParam.code = this.$route.query.code // 县或者机构都行
-				this.queryParam.start_time = this.$route.query.start_time // 起始时间
-				this.queryParam.end_time = this.$route.query.end_time // 结束时间
-                const [pulls, Extracts] = (await Promise.all([GetPullResDetail(this.queryParam), GetresDetail(this.queryParam)].map(api => api.catch(e => null))))
-				const pull = deepGet(deepGet(pulls, 'data', []), 'organizations')
-				const Extract = deepGet(deepGet(Extracts, 'data', []), 'organizations', [])
-				pull.forEach(u => {
-					pullData.push(...u.res.sort(compare('TableName')))
-					u.res.forEach(o => {
-						this.District.push(pulls.data.name)
-						this.name.push(u.name)
-						organizationsCode.push(u.code)
-					})
-				})
-				Extract.forEach(u => {
-					extractData.push(...u.res.sort(compare('TableName')))
-				})
-                pullData.forEach((u, o) => {
-                    this.result.push({
-						countyCode: pulls.data.code,
-						code: organizationsCode[o],
-						TableName: u.TableName,
-						upload: extractData[o].Upload,
-						Pull: u.Pull,
-						howlink: '暂无数据',
-						Extract_failure: extractData[o].Failure,
-						pull_failure: u.Failure,
-						name: this.name[o],
-						District: this.District[o]
-					})
+				this.queryParam.code = this.code
+				this.queryParam.start_time = moment(this.queryParam.start_time).format('YYYY-MM-DD')
+				this.queryParam.end_time = moment(this.queryParam.end_time).format('YYYY-MM-DD')
+				const data = deepGet(await GetPullResDetail(this.queryParam), 'data', [])
+				const District = deepGet(data, 'name', '')
+				const organizations = deepGet(data, 'organizations', '')
+                organizations.forEach(u => {
+                    u.res.forEach((_, p) => {
+                        this.result.push({
+                            Failure: _.failure,
+                            Success: _.success,
+                            TableName: _.table_name,
+                            Pull: _.pull,
+                            name: u.name,
+							District: District
+                        })
+                        this.District.push(District)
+                        this.name.push(u.name)
+                    })
 				})
                 return {
                     data: this.result,
@@ -204,28 +177,22 @@ export default {
                 }
             }
         }
-    },
-
+	},
+	computed: {
+		code () {
+			return this.$route.path.split('/')[4]
+		}
+	},
     methods: {
         Close () {
-			const obj = {
-					'start_time': this.$route.query.start_time,
-					'end_time': this.$route.query.end_time,
-					'code': this.$route.query.code
-				}
-            this.$router.push({ path: '/Summary/Home', query: obj })
+            this.$router.push({ path: '/Statistics/SignUp/pull', query: this.$route.query })
         },
-        ErrorLog (row, router) {
-				const obj = {
-					code: row.code,
-					countyCode: row.countyCode,
-					TableName: row.TableName,
-					start_time: this.queryParam.start_time,
-					end_time: this.queryParam.end_time,
-					is_town: 'false',
-					router: 'Summary/District'
-				}
-				this.$router.push({ path: '/error/' + router, query: obj })
+        ErrorLog (row) {
+			this.queryParam.code = row.code
+			this.queryParam.table_name = row.TableName
+			this.queryParam.router = `Statistics/SignUp/pull/${row.code}`
+			this.queryParam.is_town = 'false'
+            this.$router.push({ path: '/error/Extractlog', query: this.queryParam })
         },
         ExportExcel () {
             this.result.forEach((u, index) => {

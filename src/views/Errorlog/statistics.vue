@@ -15,7 +15,6 @@
         </a-row>
       </a-form>
     </div>
-
     <div class="table-operator">
       <a-button type="primary" v-if="$route.query.code" @click="Close">返回</a-button>
       <a-button type="primary" @click="ExportExcel">导出Excel</a-button>
@@ -49,54 +48,54 @@ export default {
     },
     data () {
         return {
-			itemList: [],
-			visible: false,
-			router: '',
-			// 查询参数
-			time: [],
-            queryParam: {},
+			router: '', // 需要跳转的路由
+            result: [],
+            queryParam: {}, // 查询参数
             // 表头
             columns: [
                 {
                     title: '机构',
-                    dataIndex: 'OrgName',
+					dataIndex: 'OrgName',
+                    align: 'center',
                     ellipsis: true
                 },
                 {
                     title: '表名',
                     dataIndex: 'TableName',
-                    ellipsis: true,
+					ellipsis: true,
+                    align: 'center',
                     scopedSlots: { customRender: 'TableName' }
                 },
                 {
                     title: '表内数据ID',
-                    dataIndex: 'TableId',
+					dataIndex: 'TableId',
+                    align: 'center',
                     ellipsis: true
                 },
                 {
                     title: '错误信息',
                     dataIndex: 'Error',
                     ellipsis: true,
-                    sorter: true,
+					sorter: true,
+                    align: 'center',
                     scopedSlots: { customRender: 'Error' }
                 },
                 {
                     title: '上传时间',
                     dataIndex: 'UploadTime',
                     ellipsis: true,
-                    sorter: true,
+					sorter: true,
+                    align: 'center',
                     scopedSlots: { customRender: 'time' }
                 }
             ],
-            result: [],
             // 加载数据方法 必须为 Promise 对象
             loadData: async parameter => {
 				this.result = []
-				this.router = this.$route.query.router
                 if (this.$route.query.code) {
                     const obj = {
                         'code': this.$route.query.code,
-                        'table_name': this.$route.query.TableName,
+                        'table_name': this.$route.query.table_name,
                         'start_time': this.$route.query.start_time + ' ' + '00:00:00',
                         'end_time': this.$route.query.end_time + ' ' + '23:59:59'
 					}
@@ -115,14 +114,9 @@ export default {
 
     methods: {
         Close () {
-			this.time = {
-				'start_time': this.$route.query.start_time,
-				'end_time': this.$route.query.end_time,
-				'code': this.$route.query.countyCode,
-				'town': this.$route.query.town || null
-			}
+			this.router = this.$route.query.router
 			console.log(this.router)
-            this.$router.push({ path: '/' + `${this.router}`, query: this.time })
+            this.$router.push({ path: '/' + `${this.router}`, query: this.$route.query })
         },
         ExportExcel () {
             this.result.forEach((u, index) => {

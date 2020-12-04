@@ -89,7 +89,7 @@ export default {
                 if (this.$route.query.code) {
                     const obj = {
                         'code': this.$route.query.code,
-                        'table_name': this.$route.query.TableName,
+                        'table_name': this.$route.query.table_name,
                         'start_time': this.$route.query.start_time + ' ' + '00:00:00',
                         'end_time': this.$route.query.end_time + ' ' + '23:59:59'
 					}
@@ -108,15 +108,8 @@ export default {
 
     methods: {
         Close () {
-			if (this.$route.query.code) {
-				const obj = {
-					'start_time': this.$route.query.start_time,
-					'end_time': this.$route.query.end_time,
-					'code': this.$route.query.countyCode,
-					'town': this.$route.query.town || null
-				}
-				this.$router.push({ path: '/' + this.$route.query.router, query: obj })
-			}
+			this.router = this.$route.query.router
+            this.$router.push({ path: '/' + `${this.router}`, query: this.$route.query })
         },
         ExportExcel () {
             this.result.forEach((u, index) => {

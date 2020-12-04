@@ -24,145 +24,90 @@ export const asyncRouterMap = [
             {
                 path: '/Statistics',
                 name: 'Statistics',
-                component: RouteView,
+				component: () => import('@/views/statistics/Summary'),
                 meta: { title: '数据统计', keepAlive: true, icon: bxAnaalyse, permission: ['dashboard'] },
                 children: [
 					{
-						path: '/datacount',
-						name: 'datacount',
-						hideChildrenInMenu: true,
-						// component: RouteView,
-						component: () => import('@/views/statistics/sumup/destrict'),
-						meta: { title: '数据质控汇总', keepAlive: true, permission: ['dashboard'] },
+						path: '/Statistics/Summary',
+						name: 'sumup',
+						component: () => import('@/views/statistics/Summary/destrict'),
+						meta: { title: '数据质控汇总', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+					},
+					{
+						path: '/Statistics/Summary/:sid',
+						name: 'sumupMechanism',
+						hidden: true,
+						component: () => import('@/views/statistics/Summary/mechanism'),
+						meta: { title: '机构', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+					},
+					{
+						path: '/Statistics/SignUp',
+						name: 'ContractSignUp',
+						component: RouteView,
+						meta: { title: '签约', keepAlive: true, icon: bxAnaalyse, permission: ['dashboard'] },
 						children: [
 							{
-								path: '/datacount/sumup',
-								name: 'sumup',
-								component: () => import('@/views/statistics/sumup/destrict'),
-								meta: { title: '数据质控汇总', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+								path: '/Statistics/SignUp/upload',
+								name: 'signuploadlog',
+								component: () => import('@/views/statistics/SignUp/upload/destrict'),
+								meta: { title: '推送日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
 							},
 							{
-								path: '/datacount/sumup/:sid',
-								name: 'sumup',
+								path: '/Statistics/SignUp/upload/:sid',
+								name: 'signuploadmechanism',
 								hidden: true,
-								component: () => import('@/views/statistics/sumup/mechanism'),
-								meta: { title: '机构', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+								component: () => import('@/views/statistics/SignUp/upload/mechanism'),
+								meta: { title: '机构日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+							},
+							{
+								path: '/Statistics/SignUp/pull',
+								name: 'signpulllog',
+								component: () => import('@/views/statistics/SignUp/pull/destrict'),
+								meta: { title: '抽取日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+							},
+							{
+								path: '/Statistics/SignUp/pull/:sid',
+								name: 'signuppullmechanism',
+								hidden: true,
+								component: () => import('@/views/statistics/SignUp/pull/mechanism'),
+								meta: { title: '机构日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
 							}
 						]
 					},
 					{
-						path: '/Contract',
-						name: 'Contract',
-						component: () => import('@/views/Contract/Statistics/main'),
-						// component: RouteView,
-						meta: { title: '签约', keepAlive: true, permission: ['dashboard'] },
+						path: '/Statistics/Referral',
+						name: 'ContractReferral',
+						component: RouteView,
+						meta: { title: '转诊', keepAlive: true, icon: bxAnaalyse, permission: ['dashboard'] },
 						children: [
 							{
-                                path: '/Contract/pull',
-								name: 'Contractpull',
-								hideChildrenInMenu: true,
-								redirect: '/Contract/pull/Home',
-								component: RouteView,
-								meta: { title: '抽取', keepAlive: true, permission: ['dashboard'] },
-								children: [
-									{
-										path: '/Contract/pull/Home',
-										name: 'Pushlog',
-										hidden: true,
-										component: () => import('@/views/Contract/pull/Home'),
-										meta: { title: '抽取日志', keepAlive: false, permission: ['dashboard'] }
-									},
-									{
-										path: '/Contract/pull/District',
-										name: 'District',
-										hidden: true,
-										component: () => import('@/views/Contract/pull/District'),
-										meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
-									}
-								]
+								path: '/Statistics/Referral/upload',
+								name: 'Referralloadlog',
+								component: () => import('@/views/statistics/Referral/upload/destrict'),
+								meta: { title: '推送日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
 							},
 							{
-                                path: '/Contract/Statistics',
-								name: 'ContractStatistics',
-								hideChildrenInMenu: true,
-								redirect: '/Contract/Statistics/Home',
-								component: RouteView,
-								meta: { title: '推送', keepAlive: false, permission: ['dashboard'] },
-								children: [
-									{
-										path: '/Contract/Statistics/Home',
-										name: 'ContractHome',
-										hidden: true,
-										component: () => import('@/views/Contract/Statistics/Home'),
-										meta: { title: '推送日志', keepAlive: false, permission: ['dashboard'] }
-									},
-									{
-										path: '/Contract/Statistics/District',
-										name: 'ContractDistrict',
-										hidden: true,
-										component: () => import('@/views/Contract/Statistics/District'),
-										meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
-									}
-								]
-                            }
+								path: '/Statistics/Referral/upload/:sid',
+								name: 'Referralloadmechanism',
+								hidden: true,
+								component: () => import('@/views/statistics/Referral/upload/mechanism'),
+								meta: { title: '机构日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+							},
+							{
+								path: '/Statistics/Referral/pull',
+								name: 'Referralpulllog',
+								component: () => import('@/views/statistics/Referral/pull/destrict'),
+								meta: { title: '抽取日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+							},
+							{
+								path: '/Statistics/Referral/pull/:sid',
+								name: 'Referralpullmechanism',
+								hidden: true,
+								component: () => import('@/views/statistics/Referral/pull/mechanism'),
+								meta: { title: '机构日志', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
+							}
 						]
 					}
-					// {
-					// 	path: '/Referral',
-                    //     name: 'Referral',
-                    //     component: () => import('@/views/Referral/Statistics/main'),
-					// 	meta: { title: '转诊', keepAlive: true, permission: ['dashboard'] },
-					// 	children: [
-					// 		{
-					// 			path: '/Referral/pull',
-					// 			name: 'Referralpull',
-					// 			hideChildrenInMenu: true,
-					// 			redirect: '/Referral/pull/Home',
-					// 			component: RouteView,
-					// 			meta: { title: '抽取', keepAlive: true, permission: ['dashboard'] },
-					// 			children: [
-					// 				{
-					// 					path: '/Referral/pull/District',
-					// 					name: 'ReferralDistrict',
-					// 					hidden: true,
-					// 					component: () => import('@/views/Referral/pull/District'),
-					// 					meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
-					// 				},
-					// 				{
-					// 					path: '/Referral/pull/Home',
-					// 					name: 'ReferralHome',
-					// 					hidden: true,
-					// 					component: () => import('@/views/Referral/pull/Home'),
-					// 					meta: { title: '抽取日志', keepAlive: false, permission: ['dashboard'] }
-					// 				}
-					// 			]
-					// 		},
-					// 		{
-                    //             path: '/Referral/Statistics',
-					// 			name: 'ReferralStatistics',
-					// 			hideChildrenInMenu: true,
-					// 			redirect: '/Referral/Statistics/Home',
-					// 			component: RouteView,
-					// 			meta: { title: '推送', keepAlive: false, permission: ['dashboard'] },
-					// 			children: [
-					// 				{
-					// 					path: '/Referral/Statistics/District',
-					// 					name: 'ReferralDistrict',
-					// 					hidden: true,
-					// 					component: () => import('@/views/Referral/Statistics/District'),
-					// 					meta: { title: '区县机构', keepAlive: false, permission: ['dashboard'] }
-					// 				},
-					// 				{
-					// 					path: '/Referral/Statistics/Home',
-					// 					name: 'ReferralHome',
-					// 					hidden: true,
-					// 					component: () => import('@/views/Referral/Statistics/Home'),
-					// 					meta: { title: '推送日志', keepAlive: false, permission: ['dashboard'] }
-					// 				}
-					// 			]
-					// 		}
-					// 	]
-					// }
                 ]
 			},
 			// 错误日志
@@ -207,27 +152,6 @@ export const asyncRouterMap = [
                     }
                 ]
 			}
-			// {
-			// 	path: '/datacount',
-			// 	name: 'datacount',
-			// 	component: RouteView,
-			// 	meta: { title: '数据统计', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] },
-			// 	children: [
-			// 		{
-			// 			path: '/datacount/sumup',
-			// 			name: 'sumup',
-			// 			component: () => import('@/views/statistics/sumup/destrict'),
-			// 			meta: { title: '总结', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
-			// 		},
-			// 		{
-			// 			path: '/datacount/sumup/:sid',
-			// 			name: 'sumup',
-			// 			hidden: true,
-			// 			component: () => import('@/views/statistics/sumup/mechanism'),
-			// 			meta: { title: '总结', keepAlive: false, icon: bxAnaalyse, permission: ['dashboard'] }
-			// 		}
-			// 	]
-			// }
         ]
     },
     {

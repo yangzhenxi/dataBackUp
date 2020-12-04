@@ -48,3 +48,17 @@ export function GetPullLog (data) {
 export function GetPullLogErr (data) {
     return request.post('/v1/pull/log/err', data)
 }
+/**
+ *获取数据质控汇总
+ * @param {data}
+ */
+export function getAllList (data) {
+    return request.post('/v1/all/list', data)
+}
+/**
+ *获取数据质控汇总 机构详情
+ * @param {data}
+ */
+export function getAllDetail (data) {
+    return request.post('/v1/all/detail', data)
+}
