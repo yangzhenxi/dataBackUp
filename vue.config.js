@@ -104,6 +104,12 @@ const vueConfig = {
                 target: 'http://192.168.2.54:8090',
                 ws: false,
                 changeOrigin: true
+            },
+            '/api/v1/dashboard': {
+                target: 'http://192.168.2.53:8090',
+				pathRewrite: {
+					'^/api/v1/dashboard': '/api/v1'
+				}
             }
         }
     },

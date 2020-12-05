@@ -6,6 +6,11 @@
  * 自定义图标加载表
  * 所有图标均从这里加载，方便管理
  */
-import bxAnaalyse from '@/assets/icons/bx-analyse.svg?inline' // path to your '*.svg?inline' file.
-
-export { bxAnaalyse }
+import datatotal from '@/assets/icons/menu/datatotal.svg?inline'
+import error from '@/assets/icons/menu/error.svg?inline'
+import pull from '@/assets/icons/menu/pull.svg?inline'
+import Referral from '@/assets/icons/menu/Referral.svg?inline'
+import signup from '@/assets/icons/menu/signup.svg?inline'
+import system from '@/assets/icons/menu/system.svg?inline'
+import upload from '@/assets/icons/menu/upload.svg?inline'
+export { datatotal, error, pull, signup, system, upload, Referral }
