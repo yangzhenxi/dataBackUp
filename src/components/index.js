@@ -11,6 +11,9 @@ import RankList from '@/components/Charts/RankList'
 import TransferBar from '@/components/Charts/TransferBar'
 import TagCloud from '@/components/Charts/TagCloud'
 
+import MTab from './Tab'
+import Empty from './Empty'
+import MIcon from './Icon'
 // pro components
 import AvatarList from '@/components/AvatarList'
 import Ellipsis from '@/components/Ellipsis'
@@ -23,10 +26,14 @@ import MTable from '@/components/Table/MTable'
 import IconSelector from '@/components/IconSelector'
 import TagSelect from '@/components/TagSelect'
 import ArticleListContent from '@/components/ArticleListContent'
-
+import Card from '@/components/Card/index'
 import Dialog from '@/components/Dialog'
 
 export {
+	Card,
+	Empty,
+	MTab,
+	MIcon,
     AvatarList,
     Bar,
     ChartCard,

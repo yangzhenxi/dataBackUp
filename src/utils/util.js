@@ -29,9 +29,12 @@ export function toDict (val, filter) {
     }
     if (!filter) {
         return val
-    } else {
-        return val
-    }
+	}
+	if (dict[filter]) {
+		return dict[filter].find(e => e.key === val)
+	} else {
+		return val
+	}
 }
 
 /**
@@ -90,7 +93,7 @@ export function uniq (array) {
  * @param { Object } o 对象
  */
 export function isEmpty (o) {
-    const type = Object.prototype.toString.call(o)
+	const type = Object.prototype.toString.call(o)
     switch (type) {
         case '[object Boolean]':
             return !o

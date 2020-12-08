@@ -12,9 +12,9 @@
           </a-col>
           <a-col :md="12" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" placeholder="请选择开始时间" />
+              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledStartDate" :allowClear="false" placeholder="请选择开始时间" />
               <span> ---- </span>
-              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" placeholder="请选择结束时间" />
+              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledEndDate" :allowClear="false" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col
@@ -73,11 +73,13 @@
 <script>
 import Papa from 'papaparse'
 import moment from 'moment'
+import { mixinTable } from '@/utils/mixin'
 import { MTable } from '@/components'
 import { GetPullResDetail } from '@/api/Statistics'
 import { getRowSpanCount, convert, deepGet } from '@/utils/util'
 export default {
-    name: 'TableList',
+	name: 'TableList',
+	mixins: [mixinTable],
     components: {
         MTable
     },
@@ -86,10 +88,10 @@ export default {
 			District: [], // 区县
             name: [], // 机构名称
             params: {},
-            queryParam: { 	// 查询数据库条件
-				start_time: this.$route.query.start_time,
-				end_time: this.$route.query.end_time
-			},
+            // queryParam: { 	// 查询数据库条件
+			// 	start_time: this.$route.query.start_time,
+			// 	end_time: this.$route.query.end_time
+			// },
             // 表头
             columns: [
                 {

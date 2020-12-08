@@ -21,9 +21,9 @@
           </a-col>
           <a-col :md="8" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" placeholder="请选择开始时间" />
+              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledStartDate" placeholder="请选择开始时间" />
               <span> ---- </span>
-              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" placeholder="请选择结束时间" />
+              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledEndDate" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col
@@ -101,11 +101,11 @@ export default {
 			name: [], // 机构名称
             params: {},
 			District: [], // 区县
-			queryParam: { 	// 查询数据库条件
-				start_time: this.$route.query.start_time,
-				end_time: this.$route.query.end_time,
-				status: this.$route.query.status
-			},
+			// queryParam: { 	// 查询数据库条件
+			// 	start_time: this.$route.query.start_time,
+			// 	end_time: this.$route.query.end_time,
+			// 	status: this.$route.query.status
+			// },
             // 表头
             columns: [
                 {

@@ -40,7 +40,8 @@ import {
     Skeleton,
     Popconfirm,
     PageHeader,
-    Result,
+	Result,
+	Empty,
     Statistic,
     Descriptions,
     message,
@@ -96,6 +97,7 @@ Vue.use(PageHeader)
 Vue.use(Result)
 Vue.use(Statistic)
 Vue.use(Descriptions)
+Vue.use(Empty)
 
 Vue.prototype.$confirm = Modal.confirm
 Vue.prototype.$message = message

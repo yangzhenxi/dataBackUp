@@ -106,7 +106,7 @@ const vueConfig = {
                 changeOrigin: true
             },
             '/api/v1/dashboard': {
-                target: 'http://192.168.2.53:8090',
+                target: 'http://192.168.2.53:9999',
 				pathRewrite: {
 					'^/api/v1/dashboard': '/api/v1'
 				}

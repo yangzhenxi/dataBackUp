@@ -2,7 +2,6 @@
 import { UserLayout, BasicLayout } from '@/layouts'
 // import { bxAnaalyse } from '@/core/icons'
 import * as Icon from '@/core/icons'
-console.log(Icon)
 const RouteView = {
     name: 'RouteView',
     render: (h) => h('router-view')

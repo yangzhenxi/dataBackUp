@@ -15,9 +15,9 @@
           </a-col>
           <a-col :md="12" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" placeholder="请选择开始时间" />
+              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledStartDate" :allowClear="false" placeholder="请选择开始时间" />
               <span> ---- </span>
-              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" placeholder="请选择结束时间" />
+              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledEndDate" :allowClear="false" placeholder="请选择结束时间" />
             </a-form-item>
           </a-col>
           <a-col
@@ -89,11 +89,11 @@ export default {
 			that: this,
             result: [],
             District: [],
-			queryParam: {
-				start_time: this.$route.query.start_time || moment().subtract(30, 'days').format('YYYY-MM-DD'),
-				end_time: this.$route.query.end_time || moment().subtract(30, 'days').format('YYYY-MM-DD'),
-				town: this.$route.query.code || ''
-			},
+			// queryParam: {
+			// 	start_time: this.$route.query.start_time || moment().subtract(30, 'days').format('YYYY-MM-DD'),
+			// 	end_time: this.$route.query.end_time || moment().subtract(30, 'days').format('YYYY-MM-DD'),
+			// 	town: this.$route.query.code || ''
+			// },
             // 表头
             columns: [
                 {

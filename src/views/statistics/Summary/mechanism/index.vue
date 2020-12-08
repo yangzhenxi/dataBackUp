@@ -10,9 +10,9 @@
           </a-col>
           <a-col :md="8" :sm="24">
             <a-form-item label="时间">
-              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate"></a-date-picker>
+              <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledStartDate" :allowClear="false"></a-date-picker>
               <span>---</span>
-              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate"></a-date-picker>
+              <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledEndDate" :allowClear="false"></a-date-picker>
             </a-form-item>
           </a-col>
           <a-col :md="8" :sm="24">
@@ -40,6 +40,12 @@
           <a-tooltip>
             <template slot="title">根据更新时间统计新增的数据</template>
             {{ text | convert('L_TABLENAME') }}
+          </a-tooltip>
+        </template>
+        <template slot="name" slot-scope="text,row" >
+          <a-tooltip>
+            <template slot="title">{{ row.code }}</template>
+            {{ text }}
           </a-tooltip>
         </template>
         <template slot="pull_error" slot-scope="text,row">
@@ -91,10 +97,10 @@ export default {
 			Districts: [], // 区县集合
 			district: '', // 区县
 			name: [], // 机构名称
-			queryParam: { 	// 查询条件
-				start_time: this.$route.query.start_time,
-				end_time: this.$route.query.end_time
-			},
+			// queryParam: { 	// 查询条件
+			// 	start_time: this.$route.query.start_time,
+			// 	end_time: this.$route.query.end_time
+			// },
 			columns: [
                 {
                     title: '区县',
@@ -116,15 +122,16 @@ export default {
                     dataIndex: 'name',
                     ellipsis: true,
 					sorter: true,
-					customRender: (val, row, index) => {
-                        const obj = {
-                            children: val,
-                            attrs: {}
-						}
-                        const i = getRowSpanCount(this.name, index)
-                        obj.attrs.rowSpan = i
-                        return obj
-                    }
+                    scopedSlots: { customRender: 'name' }
+					// customRender: (val, row, index) => {
+                    //     const obj = {
+                    //         children: val,
+                    //         attrs: {}
+					// 	}
+                    //     const i = getRowSpanCount(this.name, index)
+                    //     obj.attrs.rowSpan = i
+                    //     return obj
+                    // }
                 },
                 {
                     title: '表名',
@@ -182,10 +189,6 @@ export default {
 				const backupRes = this.structure(backup)
 				const pullRes = this.structure(pull)
 				const uploadRes = this.structure(upload)
-				console.log(mainRes)
-				console.log(backupRes)
-				console.log(pullRes)
-				console.log(uploadRes)
 				pullRes.forEach((item, index) => {
 					uploadCount = uploadCount + uploadRes[index].upload
 					pullCount = pullCount + pullRes[index].pull
@@ -214,6 +217,16 @@ export default {
                     queryParam: this.params
                 }
 			}
+		}
+	},
+	watch: {
+		'queryParam.start_time': {
+			handler: function (newval, oldval) {
+				console.log(oldval)
+				console.log(newval)
+				// console.log(moment(oldval).format('YYYY-MM-DD'))
+			},
+			deep: true
 		}
 	},
 	methods: {

@@ -20,9 +20,9 @@
             </a-col>
             <a-col :md="8" :sm="24">
               <a-form-item label="时间">
-                <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledDate" :allowClear="false"></a-date-picker>
+                <a-date-picker v-model="queryParam.start_time" :disabled-date="disabledStartDate" :allowClear="false"></a-date-picker>
                 <span>---</span>
-                <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledDate" :allowClear="false"></a-date-picker>
+                <a-date-picker v-model="queryParam.end_time" :disabled-date="disabledEndDate" :allowClear="false"></a-date-picker>
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
@@ -95,13 +95,13 @@ export default {
       that: this,
       result: [],
       District: [],
-      queryParam: {
-        start_time: this.$route.query.start_time || moment().subtract(30, 'days').format('YYYY-MM-DD'),
-        end_time: this.$route.query.end_time || moment().subtract(30, 'days').format('YYYY-MM-DD'),
-        town: this.$route.query.town || '',
-        data_set: +this.$route.query.data_set || 0,
-        data_filter: this.$route.query.data_filter || 'All'
-      },
+    //   queryParam: {
+    //     start_time: this.$route.query.start_time || moment().subtract(1, 'days').format('YYYY-MM-DD'),
+    //     end_time: this.$route.query.end_time || moment().subtract(1, 'days').format('YYYY-MM-DD'),
+    //     town: this.$route.query.town || '',
+    //     data_set: +this.$route.query.data_set || 0,
+    //     data_filter: this.$route.query.data_filter || 'All'
+    //   },
       // 表头
       columns: [
         {
@@ -278,7 +278,13 @@ export default {
 			arrs.push(...res)
 		})
 		return arrs
-    },
+	},
+	disabledDate_start (current) {
+		return current && current > moment().endOf('day')
+	},
+	disabledDate_end (current) {
+		return current && moment().endOf('day') < current < this.queryParam.start_time
+		},
     getRowSpanCount
   }
 }
